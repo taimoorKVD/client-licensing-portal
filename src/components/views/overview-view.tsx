@@ -17,7 +17,7 @@ import { licenseMetrics, organizationIssueCount, renewalWindows } from "@/lib/me
 import { cn } from "@/lib/utils";
 
 export function OverviewView() {
-  const { isAdmin, persona, organizations, locations, licenses, activity, organizationById, locationById } =
+  const { isAdmin, can, persona, organizations, locations, licenses, activity, organizationById, locationById } =
     usePortal();
   const metrics = licenseMetrics(licenses);
   const windows = renewalWindows(licenses);
@@ -39,7 +39,7 @@ export function OverviewView() {
             : "CML keeps the filings. This view is only the licenses, locations, and notes for your pharmacy."
         }
         actions={
-          isAdmin ? (
+          can("staff.licenses.import") ? (
             <Link href="/import" className={buttonVariants()}>
               Import roster
             </Link>

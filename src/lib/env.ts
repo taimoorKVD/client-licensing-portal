@@ -1,10 +1,10 @@
 /**
- * Public Supabase settings. Values are placeholders until a project is connected.
- * The secret key is intentionally not read here. It must never be exposed with
- * a NEXT_PUBLIC_ prefix, and this demo does not use a service-role client.
+ * Public Supabase settings. The secret key is intentionally not read here.
+ * A NEXT_PUBLIC_ value is shipped to the browser, so SUPABASE_SECRET_KEY
+ * must stay server-only and is read only by src/lib/auth/admin.ts.
  */
 
-export type DataSourceMode = "demo" | "supabase";
+export type DataSourceMode = "demo" | "supabase" | "unconfigured";
 
 function read(name: string): string {
   return process.env[name]?.trim() ?? "";
@@ -13,8 +13,7 @@ function read(name: string): string {
 export function getSupabaseEnv(): { url: string; publishableKey: string } {
   const url = read("NEXT_PUBLIC_SUPABASE_URL");
   const publishableKey =
-    read("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ||
-    read("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    read("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") || read("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   return { url, publishableKey };
 }
 
@@ -23,24 +22,34 @@ export function isSupabaseConfigured(): boolean {
   return url.length > 0 && publishableKey.length > 0;
 }
 
+/**
+ * Public Supabase values always select the signed-in book.
+ * Demo data is a local preview only, and production without keys fails closed.
+ */
 export function getDataSource(): DataSourceMode {
-  const requested = read("NEXT_PUBLIC_DATA_SOURCE") || "demo";
-  if (requested === "supabase" && isSupabaseConfigured()) return "supabase";
+  const { url, publishableKey } = getSupabaseEnv();
+  if (url && publishableKey) return "supabase";
+  if (url || publishableKey || process.env.NODE_ENV === "production") return "unconfigured";
   return "demo";
 }
 
 export function describeDataSource(): { mode: DataSourceMode; detail: string } {
-  if (getDataSource() === "supabase") {
+  const mode = getDataSource();
+  if (mode === "supabase") {
     return {
-      mode: "supabase",
+      mode,
       detail:
-        "Live mode reads and writes through Supabase as the signed-in user. Row Level Security keeps each pharmacy inside its own organization.",
+        "Signed-in access through Supabase. Row Level Security and staff permissions decide what each account can see.",
     };
   }
-
+  if (mode === "unconfigured") {
+    return {
+      mode,
+      detail: "Supabase is not configured. The license book is not served until the server environment is set.",
+    };
+  }
   return {
-    mode: "demo",
-    detail:
-      "Demo book in this browser. The Supabase migration is ready when you connect a project.",
+    mode,
+    detail: "Local preview of the sample book. It is not available once Supabase is configured.",
   };
 }

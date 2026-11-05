@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { PortalProvider } from "@/components/portal/portal-provider";
-import { PortalShell } from "@/components/portal/portal-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
-import { describeDataSource } from "@/lib/env";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -28,15 +25,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  const source = describeDataSource();
-
   return (
     <html lang="en" className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <TooltipProvider>
-          <PortalProvider>
-            <PortalShell source={source}>{children}</PortalShell>
-          </PortalProvider>
+          {children}
           <Toaster />
         </TooltipProvider>
       </body>

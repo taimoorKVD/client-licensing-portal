@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState, type ReactNode } from "react";
-import { Building2, Check, FileSpreadsheet, MapPin, Menu, ScrollText, LayoutDashboard } from "lucide-react";
+import { Building2, Check, FileSpreadsheet, History, KeyRound, MapPin, Menu, ScrollText, LayoutDashboard, Users } from "lucide-react";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,17 +16,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { signOut } from "@/lib/auth/actions";
+import type { Permission } from "@/lib/auth/access";
 import { PERSONAS, type PersonaId } from "@/lib/domain";
 import type { DataSourceMode } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const NAV = [
-  { href: "/", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard, admin: false },
-  { href: "/organizations", label: "Organizations", shortLabel: "Your pharmacy", icon: Building2, admin: false },
-  { href: "/locations", label: "Locations", shortLabel: "Your locations", icon: MapPin, admin: false },
-  { href: "/licenses", label: "Licenses", shortLabel: "Your licenses", icon: ScrollText, admin: false },
-  { href: "/import", label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, admin: true },
+  { href: "/", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard },
+  { href: "/organizations", label: "Organizations", shortLabel: "Your pharmacy", icon: Building2 },
+  { href: "/locations", label: "Locations", shortLabel: "Your locations", icon: MapPin },
+  { href: "/licenses", label: "Licenses", shortLabel: "Your licenses", icon: ScrollText },
+  { href: "/import", label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, permission: "staff.licenses.import" },
+  { href: "/admin/users", label: "Users", shortLabel: "Users", icon: Users, permission: "staff.users.read", liveOnly: true },
+  { href: "/admin/roles", label: "Roles", shortLabel: "Roles", icon: KeyRound, permission: "staff.roles.manage", liveOnly: true },
+  { href: "/admin/audit", label: "Audit", shortLabel: "Audit", icon: History, permission: "staff.audit.read", liveOnly: true },
 ] as const;
 
 export function PortalShell({
@@ -37,7 +42,7 @@ export function PortalShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const { persona } = usePortal();
+  const { persona, mode } = usePortal();
 
   return (
     <div className="min-h-svh bg-background text-foreground">
@@ -67,7 +72,7 @@ export function PortalShell({
               title={source.detail}
             >
               <Check className="size-3.5" />
-              {source.mode === "demo" ? "Demo book" : "Supabase"}
+              {mode === "demo" ? "Local preview" : "Signed in"}
             </p>
             <p className="text-sm text-muted-foreground">
               Viewing as <span className="font-semibold text-foreground">{persona.label}</span>
@@ -81,6 +86,7 @@ export function PortalShell({
 }
 
 function SidebarBody({ onNavigate }: { onNavigate: () => void }) {
+  const { mode } = usePortal();
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 pt-6 pb-4">
@@ -89,7 +95,7 @@ function SidebarBody({ onNavigate }: { onNavigate: () => void }) {
       <Suspense fallback={<nav className="flex-1 px-3 py-2" aria-hidden />}>
         <SideNav onNavigate={onNavigate} />
       </Suspense>
-      <PersonaPanel />
+      {mode === "demo" ? <PersonaPanel /> : <AccountPanel />}
     </div>
   );
 }
@@ -108,8 +114,12 @@ function Brand() {
 
 function SideNav({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
-  const { isAdmin } = usePortal();
-  const items = NAV.filter((item) => (item.admin ? isAdmin : true));
+  const { isAdmin, mode, can } = usePortal();
+  const items = NAV.filter((item) => {
+    if ("liveOnly" in item && item.liveOnly && mode !== "live") return false;
+    if ("permission" in item && item.permission && !can(item.permission as Permission)) return false;
+    return true;
+  });
 
   return (
     <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="Primary">
@@ -135,6 +145,24 @@ function SideNav({ onNavigate }: { onNavigate: () => void }) {
         );
       })}
     </nav>
+  );
+}
+
+function AccountPanel() {
+  const { persona, actorEmail } = usePortal();
+  return (
+    <div className="border-t border-sidebar-border px-3 py-4">
+      <p className="px-2 text-[0.65rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+        Signed in
+      </p>
+      <p className="mt-2 px-2 text-sm font-medium">{persona.label}</p>
+      <p className="px-2 text-xs text-muted-foreground">{actorEmail}</p>
+      <form action={signOut} className="mt-3 px-2">
+        <Button type="submit" variant="outline" className="w-full">
+          Sign out
+        </Button>
+      </form>
+    </div>
   );
 }
 

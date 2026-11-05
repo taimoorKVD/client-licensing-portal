@@ -26,7 +26,7 @@ import { toast } from "sonner";
 
 export function LicenseDetailView({ id }: { id: string }) {
   const {
-    isAdmin,
+    can,
     licenseById,
     organizationById,
     locationById,
@@ -99,11 +99,15 @@ export function LicenseDetailView({ id }: { id: string }) {
             </dl>
 
             <aside className="rounded-2xl border border-border bg-card p-4">
-              {isAdmin ? (
+              {can("staff.licenses.write") ? (
                 <StatusEditor
                   current={license.status}
-                  onSave={(status) => {
-                    updateLicenseStatus(license.id, status);
+                  onSave={async (status) => {
+                    const result = await updateLicenseStatus(license.id, status);
+                    if (result && !result.ok) {
+                      toast.error(result.error);
+                      return;
+                    }
                     toast.success(`${license.licenseNumber} marked ${STATUS_LABEL[status].toLowerCase()}`);
                   }}
                 />
@@ -191,7 +195,7 @@ function StatusEditor({
   onSave,
 }: {
   current: LicenseStatus;
-  onSave: (status: LicenseStatus) => void;
+  onSave: (status: LicenseStatus) => Promise<void>;
 }) {
   const [status, setStatus] = useState<LicenseStatus>(current);
   return (
