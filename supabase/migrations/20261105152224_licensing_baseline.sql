@@ -424,8 +424,7 @@ create policy license_documents_storage_select
     and (
       (select private.is_platform_admin())
       or (storage.foldername(name))[1] in (
-        select ids.user_organization_ids::text
-        from private.user_organization_ids() as ids
+        select organization_id::text from private.user_organization_ids() as organization_id
       )
     )
   );
