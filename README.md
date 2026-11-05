@@ -27,7 +27,7 @@ npm run lint
 npm run build
 ```
 
-`npm run build` writes a static site to `out/` for a host that only serves files. The export stays in demo mode and does not embed Supabase keys. Routes are directories with `index.html` (`/`, `/licenses/`, `/licenses/<id>/`), so copy the contents of `out/` into the subdomain document root and open the site at that host's `/`.
+`npm run build` writes a static site to `out/` for a host that only serves files. The export stays in demo mode and does not embed Supabase keys. Routes are directories with `index.html` (`/`, `/licenses/`, `/licenses/<id>/`, `/organizations/org_harbor/`, `/organizations/org_mesa/`). Hostinger denies the `/_next/` directory and does not serve the CSS, JS, or fonts under it, so the build moves that tree to `next-assets/` and rewrites the references. Copy the contents of `out/` into the subdomain document root and open the site at that host's `/`.
 
 Regenerate the checked-in samples if you change the generator:
 
