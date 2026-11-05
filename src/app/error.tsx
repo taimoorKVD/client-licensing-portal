@@ -12,7 +12,7 @@ export default function AppError({
     <div className="max-w-lg">
       <h1 className="text-3xl font-semibold tracking-tight">The page did not finish loading</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Try the view again. The demo book in this browser is unchanged.
+        Try the view again. If you were signed in, your session is unchanged.
       </p>
       <Button className="mt-5" onClick={() => reset()}>
         Try again

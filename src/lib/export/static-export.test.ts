@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
 import { publishStaticAssets, PUBLIC_ASSET_PREFIX } from "./publish-static-assets";
 import { CLIENT_ROUTES, verifyStaticExport } from "./verify-static-export";
-
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
 describe("static export assets", () => {
   it("publishes CSS, JS, and fonts beside the Harbor and Mesa client routes", () => {
@@ -49,13 +45,4 @@ describe("static export assets", () => {
     );
   });
 
-  it("checks the Next.js static export for client routes and real asset files", { timeout: 180_000 }, () => {
-    const result = spawnSync("npm", ["run", "build"], {
-      cwd: repoRoot,
-      stdio: "inherit",
-      env: process.env,
-    });
-    assert.equal(result.status, 0, "next build and asset publish failed");
-    verifyStaticExport(path.join(repoRoot, "out"));
-  });
 });

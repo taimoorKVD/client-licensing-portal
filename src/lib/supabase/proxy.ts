@@ -2,6 +2,22 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/env";
 
+function isPublicPath(pathname: string): boolean {
+  return pathname === "/login" || pathname.startsWith("/login/");
+}
+
+function redirectWithSession(url: URL, sessionResponse: NextResponse) {
+  const redirect = NextResponse.redirect(url);
+  sessionResponse.cookies.getAll().forEach((cookie) => {
+    redirect.cookies.set(cookie);
+  });
+  for (const header of ["cache-control", "expires", "pragma"]) {
+    const value = sessionResponse.headers.get(header);
+    if (value) redirect.headers.set(header, value);
+  }
+  return redirect;
+}
+
 export async function updateSession(request: NextRequest) {
   if (!isSupabaseConfigured()) {
     return NextResponse.next({ request });
@@ -31,7 +47,15 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Refresh and verify the session. Do not trust getSession() in the proxy.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const authenticated = Boolean(data?.claims?.sub);
+
+  if (!authenticated && !isPublicPath(request.nextUrl.pathname)) {
+    const login = request.nextUrl.clone();
+    login.pathname = "/login";
+    login.search = "";
+    return redirectWithSession(login, supabaseResponse);
+  }
 
   return supabaseResponse;
 }

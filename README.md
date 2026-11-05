@@ -1,33 +1,37 @@
 # CML Client Licensing
 
-CML keeps pharmacy licenses for clients it already serves. This portal is the first working slice of that book: an operations desk for CML admins, and a read-only view for a pharmacy. A later release can turn the same organizations into self-service subscriptions. This version does not take payment or create accounts.
+CML keeps pharmacy licenses for clients it already serves. This portal is an operations desk for CML staff and a read-only view for a pharmacy. It does not take payment.
 
-The app runs without Supabase. Sample pharmacies, a roster import, and a sample certificate all work in the browser. The SQL migration is a real tenant baseline for when you connect a project.
+Sign-in is Supabase Auth email and password. There is no public signup. CML staff and pharmacy users are issued from **Users**, with custom roles and permissions enforced in Postgres. The sample pharmacies in `supabase/seed.sql` are seed data. They are not a substitute for a session once Supabase is configured.
+
+Accounts, MFA, the protected super admin, and the Hostinger Node.js deploy are documented in [docs/AUTH.md](docs/AUTH.md).
 
 ## What you can do
 
 - Review the book as of November 5, 2026: active, expiring, expired, pending, and suspended licenses.
-- Switch the shell between **CML Admin**, **Harbor & Pine Pharmacy**, and **Mesa Verde Rx**. A pharmacy only sees its own organizations, locations, licenses, and notes.
+- Sign in as CML staff or as a pharmacy user. A pharmacy only sees its own organizations, locations, licenses, and notes. Staff with the right permission can issue accounts, edit roles, and read the audit trail.
 - Search and filter licenses by status, state, type, and pharmacy. Expiring is calculated from the expiration date (active, and due within 90 days). It is not stored as its own status.
 - Open a license, download the sample certificate where a file is on record, and see placeholder slots where the file has not been uploaded.
-- As a CML admin, change a stored status, or import an `.xlsx` roster: map columns, validate, preview, then add the ready rows. Imported rows stay in this browser until you reset the demo book.
+- As a CML operator, change a stored status, or import an `.xlsx` roster: map columns, validate, preview, then add the ready rows. Those writes go through the signed-in session and Row Level Security.
 
 ## Run locally
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). No environment file is required.
+Open [http://localhost:3000](http://localhost:3000). With no Supabase values, `npm run dev` shows a local preview of the sample book and a persona switcher. That preview is not used in production, and it is not used when the public Supabase values are set.
 
 ```bash
 npm test
 npm run lint
 npm run build
+npm start
 ```
 
-`npm run build` writes a static site to `out/` for a host that only serves files. The export stays in demo mode and does not embed Supabase keys. Routes are directories with `index.html` (`/`, `/licenses/`, `/licenses/<id>/`, `/organizations/org_harbor/`, `/organizations/org_mesa/`). Hostinger denies the `/_next/` directory and does not serve the CSS, JS, or fonts under it, so the build moves that tree to `next-assets/` and rewrites the references. Copy the contents of `out/` into the subdomain document root and open the site at that host's `/`.
+`npm run build` produces a Node server. `npm start` listens on `0.0.0.0` and `PORT`. Do not publish an `out/` directory. Hostinger should run this as a Node.js application. See [docs/AUTH.md](docs/AUTH.md).
 
 Regenerate the checked-in samples if you change the generator:
 
@@ -48,27 +52,9 @@ On **Import roster**, choose **Use this file** for either workbook. The clean fi
 
 ## Supabase
 
-The interactive UI uses `src/lib/data/demo-repository.ts` unless you opt into Supabase. `src/lib/data/supabase-repository.ts` reads with the signed-in user's session. It does not use a service-role client. Row Level Security is what limits a pharmacy to its organization.
+`src/lib/data/supabase-repository.ts` reads and writes with the signed-in user's session. Account administration uses `SUPABASE_SECRET_KEY` only on the server, in `src/lib/auth/admin.ts`. The browser never receives it.
 
-### Environment
-
-Copy the placeholders and fill them from your Supabase project. Do not commit real keys.
-
-```bash
-cp .env.example .env.local
-```
-
-```
-NEXT_PUBLIC_DATA_SOURCE=demo
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
-```
-
-Set `NEXT_PUBLIC_DATA_SOURCE=supabase` only after both public values are set. The legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is accepted if the publishable key is empty.
-
-`SUPABASE_SECRET_KEY` is server-only. Leave it unset for this demo. Never prefix it with `NEXT_PUBLIC_`.
-
-Auth cookies are refreshed in `src/proxy.ts` when Supabase is configured. The proxy calls `getClaims()` and does not trust `getSession()`.
+Auth cookies are refreshed in `src/proxy.ts`. The proxy calls `getClaims()` and does not trust `getSession()`. Staff must finish authenticator enrollment or a code challenge before the book layout loads. The first staff sign-in is enrollment. See [docs/AUTH.md](docs/AUTH.md).
 
 ### Local database
 
@@ -79,51 +65,39 @@ supabase start
 supabase db reset
 ```
 
-`supabase/config.toml` applies `supabase/migrations` and then `supabase/seed.sql`. The seed loads the same fictional pharmacies as the demo book. It does not create auth users.
+`supabase/config.toml` disables public signup, requires a 12-character password, and enables TOTP. It applies `supabase/migrations` and then `supabase/seed.sql`. The seed loads the fictional pharmacies. It does not create auth users.
 
-After you sign up a user in the local project, grant CML access with the SQL editor (service role), using that user's id:
+Create `hello@taimoorhussain.com` in Studio, then run `select private.bootstrap_super_admin();`. Further accounts are issued from the portal. Do not put roles in `user_metadata`.
 
-```sql
-insert into public.platform_admins (user_id)
-values ('00000000-0000-0000-0000-000000000000');
-```
+### What the database enforces
 
-A pharmacy user is a row in `memberships`, not a self-assigned claim:
-
-```sql
-insert into public.memberships (organization_id, user_id, role)
-values (
-  (select id from public.organizations where name = 'Harbor & Pine Pharmacy'),
-  '00000000-0000-0000-0000-000000000000',
-  'pharmacy_viewer'
-);
-```
-
-Do not put roles in `user_metadata`. End users can edit that payload. Staff access lives in `platform_admins`.
-
-### What the migration enforces
-
-- Tables: `organizations`, `locations`, `licenses`, `documents`, `memberships`, `platform_admins`.
-- RLS enabled and forced on each table. `anon` has no grants.
+- Book tables: `organizations`, `locations`, `licenses`, `documents`, `memberships`, `platform_admins`.
+- Access tables: `profiles`, `roles`, `role_permissions`, `permissions`, `staff_assignments`, `audit_events`.
+- RLS on every exposed table. `anon` has no grants. Book and audit policies are also restrictive on MFA.
 - Pharmacy members can select rows for their organizations. They cannot insert a membership for themselves.
-- Inserts, updates, and deletes on the book are limited to platform admins.
+- Writes require the matching staff permission (`staff.licenses.write`, `staff.licenses.import`, and the rest).
 - Helper functions live in the `private` schema, which is not exposed by the Data API. They are `security definer` with an empty `search_path`.
+- The protected super admin cannot be demoted, disabled, or deleted, and the super admin role cannot lose its permissions.
 - `license_portfolio` is a `security_invoker` view, so RLS on the base tables still applies.
-- Storage bucket `license-documents` is private. Object paths should start with `{organization_id}/`. Members can read their prefix. Only platform admins can upload, replace, or delete objects.
+- Storage bucket `license-documents` is private. Object paths should start with `{organization_id}/`.
 
-Hosted projects: `supabase link` then `supabase db push`. Use the dashboard SQL editor if you are not using the CLI.
+`platform_admins` is kept in sync from staff assignments. Inserting into it directly is rejected.
 
 ## Layout
 
 ```
 src/app                         routes
-src/components/portal           shell, role switcher, tables
+src/app/(auth)                  sign-in and authenticator enrollment
+src/app/(portal)/admin          users, roles, audit
+src/components/portal           shell, tables
 src/components/views            dashboard, book, import
-src/lib/data                    repository boundary (demo and Supabase)
+src/lib/auth                    permissions, session, admin API
+src/lib/data                    repository boundary
 src/lib/import                  parse, map, validate, commit
 src/lib/supabase                browser client, server client, proxy
 supabase/migrations             schema and RLS
+docs/AUTH.md                    environment, bootstrap, MFA, Hostinger
 public/samples                  generated xlsx and pdf
 ```
 
-The demo role switcher is a stand-in for auth. In Supabase mode the same split is `platform_admins` versus `memberships`.
+The local preview still has a persona switcher so the sample book can be opened without keys. With Supabase configured, that switcher is gone and the split is staff assignments versus pharmacy memberships.

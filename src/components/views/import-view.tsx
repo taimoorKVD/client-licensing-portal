@@ -41,7 +41,8 @@ const SAMPLES = [
 ] as const;
 
 export function ImportView() {
-  const { isAdmin, organizations, licenses, importRows } = usePortal();
+  const { can, organizations, licenses, importRows } = usePortal();
+  const isAdmin = can("staff.licenses.import");
   const router = useRouter();
   const [step, setStep] = useState<Step>("Source");
   const [fileName, setFileName] = useState("");
@@ -102,12 +103,16 @@ export function ImportView() {
     await loadBuffer(await response.arrayBuffer(), name);
   }
 
-  function commit() {
+  async function commit() {
     const rows = ready.flatMap((row) => (row.values ? [row.values] : []));
-    const result = importRows(rows);
-    setSummary(result);
-    setStep("Import");
-    toast.success(`${result.licensesCreated} licenses added to the book`);
+    try {
+      const result = await importRows(rows);
+      setSummary(result);
+      setStep("Import");
+      toast.success(`${result.licensesCreated} licenses added to the book`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "The import did not finish.");
+    }
   }
 
   if (!isAdmin) return null;

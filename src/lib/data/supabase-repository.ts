@@ -191,7 +191,7 @@ function mapDocument(row: DocumentRow): LicenseDocument {
     kind: row.kind,
     fileName: row.file_name,
     mimeType: row.mime_type,
-    href: null,
+    href: row.storage_path?.startsWith("samples/") ? `/${row.storage_path}` : null,
     uploadedOn: row.uploaded_on,
     placeholder: !row.storage_path,
   };
