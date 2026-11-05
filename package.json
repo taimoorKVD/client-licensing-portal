@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && tsx scripts/publish-static-assets.ts",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/import/validate.test.ts",
+    "test": "tsx --test src/lib/import/validate.test.ts src/lib/export/static-export.test.ts",
     "generate:samples": "node scripts/generate-samples.mjs",
     "generate:seed": "tsx scripts/emit-seed.ts"
   },

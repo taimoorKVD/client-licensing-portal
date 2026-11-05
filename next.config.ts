@@ -34,6 +34,8 @@ const nextConfig = (phase: string): NextConfig => {
           output: "export",
           // `/licenses/index.html` is what Apache serves for `/licenses/` at
           // the document root. Root-absolute links keep working from any page.
+          // Hostinger denies `/_next/` and 404s `/_next/static/*`. The build
+          // script moves that tree to `next-assets/` after export.
           trailingSlash: true,
           env: { ...demoPublicEnv },
         }
