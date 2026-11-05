@@ -24,7 +24,7 @@ export function LicenseTable({
 }) {
   if (licenses.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed px-6 py-12 text-center">
+      <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center">
         <p className="font-heading text-lg">No licenses in this view</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Adjust the filters, or import a roster if you are working as CML.
@@ -34,7 +34,7 @@ export function LicenseTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)]">
       <Table>
         <TableHeader>
           <TableRow>
@@ -55,7 +55,7 @@ export function LicenseTable({
                 <TableCell>
                   <Link
                     href={`/licenses/${license.id}`}
-                    className="font-medium text-foreground underline-offset-4 hover:underline"
+                    className="font-semibold text-foreground underline-offset-4 hover:text-primary hover:underline"
                   >
                     {license.licenseNumber}
                   </Link>

@@ -54,7 +54,7 @@ export function OrganizationDetailView({ id }: { id: string }) {
         </CardHeader>
         <CardContent className="grid gap-3">
           {orgLocations.map((location) => (
-            <div key={location.id} className="rounded-lg border px-3 py-3">
+            <div key={location.id} className="rounded-xl border border-border px-3 py-3 transition-colors hover:bg-accent/50">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-medium">{location.name}</p>
                 <p className="text-xs text-muted-foreground">{location.status === "active" ? "Open" : "Inactive"}</p>
@@ -85,7 +85,7 @@ export function OrganizationDetailView({ id }: { id: string }) {
 
 function Fact({ label, value, extra }: { label: string; value: string; extra?: string }) {
   return (
-    <div className="rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10">
+    <div className="rounded-2xl border border-border bg-card px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm">{value}</p>
       {extra ? <p className="mt-1 text-xs text-muted-foreground">{extra}</p> : null}

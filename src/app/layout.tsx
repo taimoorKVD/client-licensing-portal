@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { PortalProvider } from "@/components/portal/portal-provider";
 import { PortalShell } from "@/components/portal/portal-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,18 +7,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { describeDataSource } from "@/lib/env";
 import "./globals.css";
 
-const geistSans = Geist({
+const jakarta = Plus_Jakarta_Sans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
   subsets: ["latin"],
 });
 
@@ -35,10 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   const source = describeDataSource();
 
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full">
         <TooltipProvider>
           <PortalProvider>

@@ -66,7 +66,7 @@ export function LicenseDetailView({ id }: { id: string }) {
         </TabsList>
         <TabsContent value="record" className="mt-4">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <dl className="grid gap-px overflow-hidden rounded-xl bg-border ring-1 ring-foreground/10 sm:grid-cols-2">
+            <dl className="grid gap-3 sm:grid-cols-2">
               <Field label="Holder" value={license.holderName} />
               <Field
                 label="Pharmacy"
@@ -98,7 +98,7 @@ export function LicenseDetailView({ id }: { id: string }) {
               <Field label="Source" value={license.source === "import" ? "Spreadsheet import" : "CML book"} />
             </dl>
 
-            <aside className="rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+            <aside className="rounded-2xl border border-border bg-card p-4">
               {isAdmin ? (
                 <StatusEditor
                   current={license.status}
@@ -131,7 +131,7 @@ export function LicenseDetailView({ id }: { id: string }) {
               documents.map((document) => (
                 <article
                   key={document.id}
-                  className="flex flex-col gap-3 rounded-xl bg-card px-4 py-4 ring-1 ring-foreground/10 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-2xl border border-border bg-card px-4 py-4 transition-colors hover:border-primary/30 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <p className="text-sm font-medium">{document.title}</p>
@@ -170,7 +170,7 @@ function Field({
   href?: string;
 }) {
   return (
-    <div className="bg-card px-4 py-3">
+    <div className="rounded-2xl border border-border bg-card px-4 py-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="mt-1 text-sm">
         {href ? (

@@ -36,7 +36,7 @@ export function LocationsView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Sites"
-        title={isAdmin ? "Locations" : "Your locations"}
+        title={isAdmin ? "Where each\npermit lives." : "Your locations.\nOne site at a time."}
         description="Each permit is tied to a dispensing site. DEA and NCPDP numbers sit on the location so a renewal is not confused with the legal entity."
       />
 
@@ -56,7 +56,7 @@ export function LocationsView() {
             id="location-state"
             value={state}
             onChange={(event) => setState(event.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+            className="h-9 rounded-xl border border-input bg-card px-2.5 text-sm"
           >
             <option value="all">All states</option>
             {states.map((code) => (
@@ -68,7 +68,7 @@ export function LocationsView() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -89,7 +89,7 @@ export function LocationsView() {
                   {isAdmin ? (
                     <TableCell>
                       {organization ? (
-                        <Link href={`/organizations/${organization.id}`} className="hover:underline">
+                        <Link href={`/organizations/${organization.id}`} className="font-medium hover:text-primary hover:underline">
                           {organization.name}
                         </Link>
                       ) : (

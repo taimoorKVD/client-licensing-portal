@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DISPLAY_STATUSES, STATUS_LABEL, displayStatus } from "@/lib/domain";
+import { DISPLAY_STATUSES, STATUS_LABEL, daysUntilExpiry, displayStatus } from "@/lib/domain";
 
 export function LicensesView() {
   const { isAdmin, organizations, locations, licenses } = usePortal();
@@ -20,6 +20,7 @@ export function LicensesView() {
   const state = params.get("state") ?? "all";
   const org = params.get("org") ?? "all";
   const type = params.get("type") ?? "all";
+  const within = params.get("within") ?? "all";
 
   const states = useMemo(
     () => [...new Set(licenses.map((license) => license.state))].sort(),
@@ -45,6 +46,7 @@ export function LicensesView() {
     if (state !== "all" && license.state !== state) return false;
     if (org !== "all" && license.organizationId !== org) return false;
     if (type !== "all" && license.licenseType !== type) return false;
+    if (within !== "all" && !matchesWindow(license, within)) return false;
     if (query.trim()) {
       const organization = organizations.find((item) => item.id === license.organizationId);
       const haystack = `${license.licenseNumber} ${license.licenseType} ${license.issuingAuthority} ${license.holderName} ${organization?.name ?? ""}`.toLowerCase();
@@ -59,7 +61,7 @@ export function LicensesView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Credentials"
-        title={isAdmin ? "License book" : "Your licenses"}
+        title={isAdmin ? "The license book.\nSearch the whole set." : "Your licenses.\nNothing outside this pharmacy."}
         description={`${sorted.length} showing. Search covers the number, type, authority, holder, and pharmacy name.`}
       />
 
@@ -97,6 +99,19 @@ export function LicensesView() {
           onChange={(value) => update({ type: value })}
           options={[["all", "All types"], ...types.map((item) => [item, item] as const)]}
         />
+        <Filter
+          id="license-window"
+          label="Window"
+          value={within}
+          onChange={(value) => update({ within: value })}
+          options={[
+            ["all", "Any date"],
+            ["30", "Next 30 days"],
+            ["60", "31–60 days"],
+            ["90", "61–90 days"],
+            ["later", "Beyond 90 days"],
+          ]}
+        />
         {isAdmin ? (
           <Filter
             id="license-org"
@@ -121,6 +136,21 @@ export function LicensesView() {
   );
 }
 
+function matchesWindow(
+  license: { status: "active" | "pending" | "expired" | "suspended"; expiresOn: string | null },
+  within: string,
+): boolean {
+  const remaining = daysUntilExpiry(license);
+  const shown = displayStatus(license);
+  if (shown !== "active" && shown !== "expiring") return false;
+  if (remaining === null || remaining < 0) return false;
+  if (within === "30") return remaining <= 30;
+  if (within === "60") return remaining >= 31 && remaining <= 60;
+  if (within === "90") return remaining >= 61 && remaining <= 90;
+  if (within === "later") return remaining >= 91;
+  return true;
+}
+
 function Filter({
   id,
   label,
@@ -141,7 +171,7 @@ function Filter({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+        className="h-9 rounded-xl border border-input bg-card px-2.5 text-sm"
       >
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>

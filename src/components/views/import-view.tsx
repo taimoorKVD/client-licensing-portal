@@ -116,7 +116,7 @@ export function ImportView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Intake"
-        title="Import a roster"
+        title={"A roster,\nchecked before it lands."}
         description="Map the client spreadsheet, block rows that would dirty the book, then add the ready rows. Samples are generated files in this repo, not a live board export."
       />
 
@@ -149,7 +149,7 @@ export function ImportView() {
       {step === "Source" ? (
         <div className="grid gap-4 lg:grid-cols-3">
           {SAMPLES.map((sample) => (
-            <article key={sample.href} className="flex flex-col rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+            <article key={sample.href} className="flex flex-col rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent/30">
               <h2 className="font-heading text-xl">{sample.title}</h2>
               <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">{sample.detail}</p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -160,7 +160,7 @@ export function ImportView() {
               </div>
             </article>
           ))}
-          <article className="flex flex-col rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+          <article className="flex flex-col rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent/30">
             <h2 className="font-heading text-xl">Your workbook</h2>
             <p className="mt-2 flex-1 text-sm leading-6 text-muted-foreground">
               Upload an .xlsx file with a header row. The sheet named like “roster” is read first.
@@ -206,7 +206,7 @@ export function ImportView() {
               Still unmapped: {missingRequired.map((field) => field.label).join(", ")}.
             </p>
           ) : null}
-          <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -299,7 +299,7 @@ export function ImportView() {
               <Button onClick={commit}>Import {ready.length} licenses</Button>
             </div>
           </div>
-          <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -332,7 +332,7 @@ export function ImportView() {
       ) : null}
 
       {step === "Import" && summary ? (
-        <section className="rounded-xl bg-card p-5 ring-1 ring-foreground/10" aria-live="polite">
+        <section className="rounded-2xl border border-border bg-card p-5" aria-live="polite">
           <h2 className="font-heading text-2xl">Roster added</h2>
           <dl className="mt-4 grid gap-3 sm:grid-cols-3">
             <Summary label="Organizations created" value={summary.organizationsCreated} />
@@ -362,7 +362,7 @@ export function ImportView() {
 
 function IssueTable({ rows }: { rows: ValidatedRow[] }) {
   return (
-    <div className="overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <Table>
         <TableHeader>
           <TableRow>
@@ -408,7 +408,7 @@ function cell(row: ValidatedRow, key: "organizationName" | "licenseNumber") {
 
 function Summary({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg bg-muted/60 px-3 py-3">
+    <div className="rounded-2xl bg-accent px-3 py-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="font-heading text-3xl tabular-nums">{value}</dd>
     </div>

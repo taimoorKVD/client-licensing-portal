@@ -16,6 +16,15 @@ const MONTHS = [
   "Dec",
 ] as const;
 
+export function addDays(iso: string, days: number): string {
+  const [year, month, day] = iso.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day + days));
+  const y = utc.getUTCFullYear();
+  const m = String(utc.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(utc.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function daysBetween(fromIso: string, toIso: string): number {
   const from = Date.UTC(...parts(fromIso));
   const to = Date.UTC(...parts(toIso));

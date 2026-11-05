@@ -181,8 +181,8 @@ export function daysUntilExpiry(
 
 export const STATUS_LABEL: Record<DisplayStatus, string> = {
   active: "Active",
-  expiring: "Expiring",
-  expired: "Expired",
+  expiring: "Expiring soon",
+  expired: "Overdue",
   pending: "Pending",
   suspended: "Suspended",
 };
