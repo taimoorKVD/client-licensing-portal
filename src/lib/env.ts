@@ -1,7 +1,8 @@
 /**
- * Public Supabase settings. Values are placeholders until a project is connected.
- * The secret key is intentionally not read here. It must never be exposed with
- * a NEXT_PUBLIC_ prefix, and this demo does not use a service-role client.
+ * Public Supabase settings. The secret key is intentionally not read here.
+ * A file imported by browser code must never read the service-role key.
+ * When the public URL and key are present, the portal always uses the
+ * signed-in session. Demo mode is only the local UI with no project connected.
  */
 
 export type DataSourceMode = "demo" | "supabase";
@@ -24,8 +25,7 @@ export function isSupabaseConfigured(): boolean {
 }
 
 export function getDataSource(): DataSourceMode {
-  const requested = read("NEXT_PUBLIC_DATA_SOURCE") || "demo";
-  if (requested === "supabase" && isSupabaseConfigured()) return "supabase";
+  if (isSupabaseConfigured()) return "supabase";
   return "demo";
 }
 
@@ -34,13 +34,13 @@ export function describeDataSource(): { mode: DataSourceMode; detail: string } {
     return {
       mode: "supabase",
       detail:
-        "Live mode reads and writes through Supabase as the signed-in user. Row Level Security keeps each pharmacy inside its own organization.",
+        "Signed-in access. Row Level Security and staff permissions decide which pharmacies and actions are available.",
     };
   }
 
   return {
     mode: "demo",
     detail:
-      "Demo book in this browser. The Supabase migration is ready when you connect a project.",
+      "Local sample book. No Supabase project is configured, so this browser copy is not the live directory.",
   };
 }

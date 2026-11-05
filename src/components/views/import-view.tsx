@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { importRosterAction } from "@/lib/data/book-actions";
 import { IMPORT_FIELDS, suggestColumnMap, type ColumnMap } from "@/lib/import/fields";
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/import/parse-workbook";
 import { validateWorkbook, type ValidatedRow } from "@/lib/import/validate";
@@ -41,7 +42,7 @@ const SAMPLES = [
 ] as const;
 
 export function ImportView() {
-  const { isAdmin, organizations, licenses, importRows } = usePortal();
+  const { mode, canImport, organizations, licenses, importRows } = usePortal();
   const router = useRouter();
   const [step, setStep] = useState<Step>("Source");
   const [fileName, setFileName] = useState("");
@@ -51,8 +52,8 @@ export function ImportView() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!isAdmin) router.replace("/");
-  }, [isAdmin, router]);
+    if (!canImport) router.replace("/");
+  }, [canImport, router]);
 
   const validated = useMemo(() => {
     if (!parsed) return [] as ValidatedRow[];
@@ -102,15 +103,32 @@ export function ImportView() {
     await loadBuffer(await response.arrayBuffer(), name);
   }
 
-  function commit() {
-    const rows = ready.flatMap((row) => (row.values ? [row.values] : []));
-    const result = importRows(rows);
-    setSummary(result);
-    setStep("Import");
-    toast.success(`${result.licensesCreated} licenses added to the book`);
+  async function commit() {
+    setError("");
+    try {
+      if (mode === "live") {
+        if (!parsed) return;
+        const result = await importRosterAction({ rows: parsed.rows, columnMap });
+        if (!result.ok) {
+          setError(result.message);
+          return;
+        }
+        setSummary(result.summary);
+        toast.success(`${result.summary.licensesCreated} licenses added to the book`);
+        router.refresh();
+      } else {
+        const rows = ready.flatMap((row) => (row.values ? [row.values] : []));
+        const result = await importRows(rows);
+        setSummary(result);
+        toast.success(`${result.licensesCreated} licenses added to the book`);
+      }
+      setStep("Import");
+    } catch (commitError) {
+      setError(commitError instanceof Error ? commitError.message : "The roster was not imported.");
+    }
   }
 
-  if (!isAdmin) return null;
+  if (!canImport) return null;
 
   return (
     <div className="flex flex-col gap-6">

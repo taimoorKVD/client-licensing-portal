@@ -21,6 +21,9 @@ export function createDemoRepository(snapshot: PortalSnapshot): LicensingReposit
     async listDocuments(licenseId) {
       return snapshot.documents.filter((document) => document.licenseId === licenseId);
     },
+    async listAllDocuments() {
+      return snapshot.documents;
+    },
   };
 }
 

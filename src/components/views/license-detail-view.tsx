@@ -26,7 +26,8 @@ import { toast } from "sonner";
 
 export function LicenseDetailView({ id }: { id: string }) {
   const {
-    isAdmin,
+    mode,
+    canWriteLicenses,
     licenseById,
     organizationById,
     locationById,
@@ -40,7 +41,11 @@ export function LicenseDetailView({ id }: { id: string }) {
       <PageHeader
         eyebrow="License"
         title="Not in this view"
-        description="This license is outside the pharmacy you are viewing, or it is not in the demo book."
+        description={
+          mode === "demo"
+            ? "This license is outside the pharmacy you are viewing, or it is not in the demo book."
+            : "This license is not in your directory."
+        }
       />
     );
   }
@@ -99,12 +104,16 @@ export function LicenseDetailView({ id }: { id: string }) {
             </dl>
 
             <aside className="rounded-2xl border border-border bg-card p-4">
-              {isAdmin ? (
+              {canWriteLicenses ? (
                 <StatusEditor
                   current={license.status}
-                  onSave={(status) => {
-                    updateLicenseStatus(license.id, status);
-                    toast.success(`${license.licenseNumber} marked ${STATUS_LABEL[status].toLowerCase()}`);
+                  onSave={async (status) => {
+                    try {
+                      await updateLicenseStatus(license.id, status);
+                      toast.success(`${license.licenseNumber} marked ${STATUS_LABEL[status].toLowerCase()}`);
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "The status was not saved.");
+                    }
                   }}
                 />
               ) : (
@@ -191,7 +200,7 @@ function StatusEditor({
   onSave,
 }: {
   current: LicenseStatus;
-  onSave: (status: LicenseStatus) => void;
+  onSave: (status: LicenseStatus) => void | Promise<void>;
 }) {
   const [status, setStatus] = useState<LicenseStatus>(current);
   return (
