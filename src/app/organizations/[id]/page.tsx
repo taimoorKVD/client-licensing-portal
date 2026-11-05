@@ -1,10 +1,15 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { OrganizationDetailView } from "@/components/views/organization-detail-view";
+import { seedSnapshot } from "@/lib/seed";
 
 export const metadata: Metadata = {
   title: "Organization",
 };
+
+export function generateStaticParams() {
+  return seedSnapshot.organizations.map((organization) => ({ id: organization.id }));
+}
 
 export default function OrganizationPage({
   params,
