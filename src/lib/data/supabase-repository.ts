@@ -123,6 +123,14 @@ export async function createSupabaseLicensingRepository(): Promise<LicensingRepo
       if (error) throw error;
       return (data as DocumentRow[]).map(mapDocument);
     },
+    async listAllDocuments() {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("*")
+        .order("uploaded_on", { ascending: false });
+      if (error) throw error;
+      return (data as DocumentRow[]).map(mapDocument);
+    },
   };
 }
 
@@ -191,8 +199,13 @@ function mapDocument(row: DocumentRow): LicenseDocument {
     kind: row.kind,
     fileName: row.file_name,
     mimeType: row.mime_type,
-    href: null,
+    href: publicSampleHref(row.storage_path),
     uploadedOn: row.uploaded_on,
     placeholder: !row.storage_path,
   };
+}
+
+function publicSampleHref(storagePath: string | null): string | null {
+  if (!storagePath?.startsWith("samples/")) return null;
+  return `/${storagePath}`;
 }

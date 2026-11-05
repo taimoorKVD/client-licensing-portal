@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/dates";
 import { ORGANIZATION_STATUS_LABEL } from "@/lib/domain";
 
 export function OrganizationDetailView({ id }: { id: string }) {
-  const { isAdmin, organizationById, locations, licenses } = usePortal();
+  const { mode, isAdmin, organizationById, locations, licenses } = usePortal();
   const organization = organizationById(id);
 
   if (!organization) {
@@ -18,7 +18,11 @@ export function OrganizationDetailView({ id }: { id: string }) {
       <PageHeader
         eyebrow="Clients"
         title="Pharmacy not in this view"
-        description="This organization is outside the pharmacy you are viewing. Switch to CML Admin to see the full book."
+        description={
+          mode === "demo"
+            ? "This organization is outside the pharmacy you are viewing. Switch to CML Admin to see the full book."
+            : "This organization is not in your directory."
+        }
       />
     );
   }

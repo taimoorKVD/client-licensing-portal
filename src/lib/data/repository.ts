@@ -24,4 +24,5 @@ export interface LicensingRepository {
   listLicenses(query?: LicenseQuery): Promise<License[]>;
   getLicense(id: string): Promise<License | null>;
   listDocuments(licenseId: string): Promise<LicenseDocument[]>;
+  listAllDocuments(): Promise<LicenseDocument[]>;
 }

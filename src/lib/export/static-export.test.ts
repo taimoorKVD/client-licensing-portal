@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -49,13 +48,14 @@ describe("static export assets", () => {
     );
   });
 
-  it("checks the Next.js static export for client routes and real asset files", { timeout: 180_000 }, () => {
-    const result = spawnSync("npm", ["run", "build"], {
-      cwd: repoRoot,
-      stdio: "inherit",
-      env: process.env,
-    });
-    assert.equal(result.status, 0, "next build and asset publish failed");
-    verifyStaticExport(path.join(repoRoot, "out"));
+  it("keeps the portal on the Node server runtime", () => {
+    const config = fs.readFileSync(path.join(repoRoot, "next.config.ts"), "utf8");
+    const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")) as {
+      scripts: { build: string; start: string };
+    };
+    assert.equal(config.includes("output: \"export\""), false);
+    assert.equal(config.includes("output: 'export'"), false);
+    assert.equal(pkg.scripts.build, "next build");
+    assert.match(pkg.scripts.start, /^next start/);
   });
 });

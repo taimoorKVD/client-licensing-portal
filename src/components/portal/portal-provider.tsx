@@ -7,6 +7,8 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
+import { updateLicenseStatusAction } from "@/lib/data/book-actions";
 import { PORTAL_AS_OF } from "@/lib/dates";
 import {
   isPersonaId,
@@ -24,6 +26,7 @@ import {
 import { commitImport, type ImportSummary } from "@/lib/import/commit";
 import type { MappedLicense } from "@/lib/import/validate";
 import { seedSnapshot } from "@/lib/seed";
+import type { PortalSession } from "@/lib/auth/types";
 
 const STORAGE_KEY = "cml.portal.snapshot.v1";
 const PERSONA_KEY = "cml.portal.persona.v1";
@@ -122,8 +125,16 @@ function getPersonaServerSnapshot(): PersonaId {
 }
 
 type PortalContextValue = {
+  mode: "demo" | "live";
   persona: Persona;
   isAdmin: boolean;
+  canWriteLicenses: boolean;
+  canImport: boolean;
+  canReadUsers: boolean;
+  canManageUsers: boolean;
+  canReadRoles: boolean;
+  canManageRoles: boolean;
+  canReadAudit: boolean;
   setPersona: (id: PersonaId) => void;
   organizations: Organization[];
   locations: Location[];
@@ -134,14 +145,29 @@ type PortalContextValue = {
   locationById: (id: string) => Location | undefined;
   licenseById: (id: string) => License | undefined;
   documentsFor: (licenseId: string) => LicenseDocument[];
-  updateLicenseStatus: (id: string, status: LicenseStatus) => void;
-  importRows: (rows: MappedLicense[]) => ImportSummary;
+  updateLicenseStatus: (id: string, status: LicenseStatus) => Promise<void>;
+  importRows: (rows: MappedLicense[]) => Promise<ImportSummary>;
   resetDemo: () => void;
 };
 
 const PortalContext = createContext<PortalContextValue | null>(null);
 
-export function PortalProvider({ children }: { children: ReactNode }) {
+export function PortalProvider(
+  props:
+    | { mode: "demo"; children: ReactNode }
+    | { mode: "live"; session: PortalSession; snapshot: PortalSnapshot; children: ReactNode },
+) {
+  if (props.mode === "live") {
+    return (
+      <LivePortalProvider session={props.session} snapshot={props.snapshot}>
+        {props.children}
+      </LivePortalProvider>
+    );
+  }
+  return <DemoPortalProvider>{props.children}</DemoPortalProvider>;
+}
+
+function DemoPortalProvider({ children }: { children: ReactNode }) {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const personaId = useSyncExternalStore(
     subscribe,
@@ -163,8 +189,16 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     );
 
     return {
+      mode: "demo" as const,
       persona,
       isAdmin,
+      canWriteLicenses: isAdmin,
+      canImport: isAdmin,
+      canReadUsers: false,
+      canManageUsers: false,
+      canReadRoles: false,
+      canManageRoles: false,
+      canReadAudit: false,
       setPersona: writePersona,
       organizations,
       locations,
@@ -175,7 +209,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       locationById: (id) => locations.find((item) => item.id === id),
       licenseById: (id) => licenses.find((item) => item.id === id),
       documentsFor: (licenseId) => documents.filter((item) => item.licenseId === licenseId),
-      updateLicenseStatus: (id, status) => {
+      updateLicenseStatus: async (id, status) => {
         if (!isAdmin) return;
         const current = readSnapshot();
         const target = current.licenses.find((item) => item.id === id);
@@ -197,7 +231,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
           ],
         });
       },
-      importRows: (rows) => {
+      importRows: async (rows) => {
         if (!isAdmin) {
           throw new Error("Only a CML admin can import a roster.");
         }
@@ -217,6 +251,66 @@ export function PortalProvider({ children }: { children: ReactNode }) {
       },
     };
   }, [isAdmin, persona, snapshot]);
+
+  return <PortalContext.Provider value={value}>{children}</PortalContext.Provider>;
+}
+
+function LivePortalProvider({
+  session,
+  snapshot,
+  children,
+}: {
+  session: PortalSession;
+  snapshot: PortalSnapshot;
+  children: ReactNode;
+}) {
+  const router = useRouter();
+  const value = useMemo<PortalContextValue>(() => {
+    const allows = (permission: string) => session.permissions.includes(permission);
+    const isAdmin = session.actorKind === "staff";
+    const persona: Persona = {
+      id: isAdmin ? "cml_admin" : "harbor",
+      role: isAdmin ? "cml_admin" : "pharmacy_client",
+      label: session.label,
+      detail: session.detail,
+      organizationId: session.organizationIds[0] ?? null,
+    };
+    return {
+      mode: "live",
+      persona,
+      isAdmin,
+      canWriteLicenses: allows("licenses.write"),
+      canImport: allows("licenses.import"),
+      canReadUsers:
+        allows("users.read") ||
+        allows("users.manage") ||
+        allows("org.users.read") ||
+        allows("org.users.manage"),
+      canManageUsers: allows("users.manage") || allows("org.users.manage"),
+      canReadRoles: allows("roles.read") || allows("roles.manage"),
+      canManageRoles: allows("roles.manage"),
+      canReadAudit: allows("audit.read"),
+      setPersona: () => undefined,
+      organizations: snapshot.organizations,
+      locations: snapshot.locations,
+      licenses: snapshot.licenses,
+      documents: snapshot.documents,
+      activity: snapshot.activity,
+      organizationById: (id) => snapshot.organizations.find((item) => item.id === id),
+      locationById: (id) => snapshot.locations.find((item) => item.id === id),
+      licenseById: (id) => snapshot.licenses.find((item) => item.id === id),
+      documentsFor: (licenseId) => snapshot.documents.filter((item) => item.licenseId === licenseId),
+      updateLicenseStatus: async (id, status) => {
+        const result = await updateLicenseStatusAction(id, status);
+        if (!result.ok) throw new Error(result.message);
+        router.refresh();
+      },
+      importRows: async () => {
+        throw new Error("Live import goes through the roster action.");
+      },
+      resetDemo: () => undefined,
+    };
+  }, [router, session, snapshot]);
 
   return <PortalContext.Provider value={value}>{children}</PortalContext.Provider>;
 }

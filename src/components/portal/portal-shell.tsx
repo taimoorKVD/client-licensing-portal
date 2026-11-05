@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState, type ReactNode } from "react";
-import { Building2, Check, FileSpreadsheet, MapPin, Menu, ScrollText, LayoutDashboard } from "lucide-react";
+import { Building2, Check, ClipboardList, FileSpreadsheet, KeyRound, LayoutDashboard, MapPin, Menu, ScrollText, Users } from "lucide-react";
+import { signOut } from "@/app/login/actions";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,11 +23,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const NAV = [
-  { href: "/", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard, admin: false },
-  { href: "/organizations", label: "Organizations", shortLabel: "Your pharmacy", icon: Building2, admin: false },
-  { href: "/locations", label: "Locations", shortLabel: "Your locations", icon: MapPin, admin: false },
-  { href: "/licenses", label: "Licenses", shortLabel: "Your licenses", icon: ScrollText, admin: false },
-  { href: "/import", label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, admin: true },
+  { href: "/", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard, show: () => true },
+  { href: "/organizations", label: "Organizations", shortLabel: "Your pharmacy", icon: Building2, show: () => true },
+  { href: "/locations", label: "Locations", shortLabel: "Your locations", icon: MapPin, show: () => true },
+  { href: "/licenses", label: "Licenses", shortLabel: "Your licenses", icon: ScrollText, show: () => true },
+  { href: "/import", label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, show: (portal: { canImport: boolean }) => portal.canImport },
+  { href: "/admin/users", label: "People", shortLabel: "People", icon: Users, show: (portal: { canReadUsers: boolean }) => portal.canReadUsers },
+  { href: "/admin/roles", label: "Roles", shortLabel: "Roles", icon: KeyRound, show: (portal: { canReadRoles: boolean }) => portal.canReadRoles },
+  { href: "/admin/audit", label: "Audit", shortLabel: "Audit", icon: ClipboardList, show: (portal: { canReadAudit: boolean }) => portal.canReadAudit },
 ] as const;
 
 export function PortalShell({
@@ -108,8 +112,9 @@ function Brand() {
 
 function SideNav({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
-  const { isAdmin } = usePortal();
-  const items = NAV.filter((item) => (item.admin ? isAdmin : true));
+  const portal = usePortal();
+  const { isAdmin } = portal;
+  const items = NAV.filter((item) => item.show(portal));
 
   return (
     <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="Primary">
@@ -139,8 +144,30 @@ function SideNav({ onNavigate }: { onNavigate: () => void }) {
 }
 
 function PersonaPanel() {
-  const { persona, setPersona, resetDemo } = usePortal();
+  const { mode, persona, setPersona, resetDemo } = usePortal();
   const [open, setOpen] = useState(false);
+
+  if (mode === "live") {
+    return (
+      <div className="border-t border-sidebar-border px-3 py-4">
+        <p className="px-2 text-[0.65rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+          Signed in
+        </p>
+        <p className="mt-2 px-2 text-sm font-medium">{persona.label}</p>
+        <p className="px-2 text-xs text-muted-foreground">{persona.detail}</p>
+        <div className="mt-3 grid gap-1">
+          <Link href="/account" className="rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground">
+            Password
+          </Link>
+          <form action={signOut}>
+            <button type="submit" className="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground">
+              Sign out
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="border-t border-sidebar-border px-3 py-4">
