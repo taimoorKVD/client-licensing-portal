@@ -17,24 +17,29 @@ export function EnrollForm() {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
     let cancelled = false;
     void (async () => {
-      const { data, error: enrollError } = await supabase.auth.mfa.enroll({
-        factorType: "totp",
-        friendlyName: "CML authenticator",
-      });
-      if (cancelled) return;
-      if (enrollError || data.type !== "totp") {
-        setError(enrollError?.message ?? "The authenticator could not be started.");
-        return;
+      try {
+        const supabase = createClient();
+        const { data, error: enrollError } = await supabase.auth.mfa.enroll({
+          factorType: "totp",
+          friendlyName: "CML authenticator",
+        });
+        if (cancelled) return;
+        if (enrollError || !data || data.type !== "totp") {
+          setError(enrollError?.message ?? "The authenticator could not be started.");
+          return;
+        }
+        setFactorId(data.id);
+        setSecret(data.totp.secret);
+        const image = data.totp.qr_code.startsWith("data:")
+          ? data.totp.qr_code
+          : `data:image/svg+xml;utf-8,${encodeURIComponent(data.totp.qr_code)}`;
+        setQr(image);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "The authenticator could not be started.");
       }
-      setFactorId(data.id);
-      setSecret(data.totp.secret);
-      const image = data.totp.qr_code.startsWith("data:")
-        ? data.totp.qr_code
-        : `data:image/svg+xml;utf-8,${encodeURIComponent(data.totp.qr_code)}`;
-      setQr(image);
     })();
     return () => {
       cancelled = true;
@@ -45,25 +50,30 @@ export function EnrollForm() {
     event.preventDefault();
     setError("");
     setPending(true);
-    const supabase = createClient();
-    const challenge = await supabase.auth.mfa.challenge({ factorId });
-    if (challenge.error || !challenge.data) {
+    try {
+      const supabase = createClient();
+      const challenge = await supabase.auth.mfa.challenge({ factorId });
+      if (challenge.error || !challenge.data) {
+        setPending(false);
+        setError(challenge.error?.message ?? "The code could not be checked.");
+        return;
+      }
+      const verified = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challenge.data.id,
+        code: code.trim(),
+      });
       setPending(false);
-      setError(challenge.error?.message ?? "The code could not be checked.");
-      return;
+      if (verified.error) {
+        setError(verified.error.message);
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setPending(false);
+      setError(err instanceof Error ? err.message : "The code could not be checked.");
     }
-    const verified = await supabase.auth.mfa.verify({
-      factorId,
-      challengeId: challenge.data.id,
-      code: code.trim(),
-    });
-    setPending(false);
-    if (verified.error) {
-      setError(verified.error.message);
-      return;
-    }
-    router.push("/");
-    router.refresh();
   }
 
   return (
