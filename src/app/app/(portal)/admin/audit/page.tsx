@@ -1,5 +1,14 @@
 import type { Metadata } from "next";
+import { EmptyState, TableEmpty } from "@/components/portal/empty-state";
 import { PageHeader } from "@/components/portal/page-header";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { hasPermission } from "@/lib/auth/access";
 import { requirePortalSession } from "@/lib/auth/session";
 import { getDataSource } from "@/lib/env";
@@ -20,11 +29,25 @@ type AuditRow = {
 
 export default async function AuditPage() {
   if (getDataSource() !== "supabase") {
-    return <p className="text-sm text-muted-foreground">The audit trail is available when Supabase Auth is configured.</p>;
+    return (
+      <EmptyState
+        framed
+        icon="unplug"
+        title="Supabase is required"
+        description="The audit trail is available when Supabase Auth is configured."
+      />
+    );
   }
   const session = await requirePortalSession();
   if (!hasPermission(session.actor, "staff.audit.read")) {
-    return <p className="text-sm text-muted-foreground">You do not have access to the audit trail.</p>;
+    return (
+      <EmptyState
+        framed
+        icon="lock"
+        title="Restricted"
+        description="You do not have access to the audit trail."
+      />
+    );
   }
 
   const { data, error } = await session.supabase
@@ -42,38 +65,39 @@ export default async function AuditPage() {
         title={"What changed,\nand who did it."}
         description="Account passwords, authenticator secrets, and the service role key are not written here."
       />
-      <div className="overflow-x-auto rounded-2xl border border-border">
-        <table className="w-full min-w-[40rem] text-left text-sm">
-          <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
-            <tr>
-              <th className="px-4 py-3 font-medium">When</th>
-              <th className="px-4 py-3 font-medium">Action</th>
-              <th className="px-4 py-3 font-medium">Record</th>
-              <th className="px-4 py-3 font-medium">Detail</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>When</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Record</TableHead>
+              <TableHead>Detail</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                  No audited changes yet.
-                </td>
-              </tr>
+              <TableEmpty
+                colSpan={4}
+                icon="history"
+                title="No audited changes yet"
+                description="Account, role, and license changes will be listed here. Passwords and secrets are not written to this trail."
+              />
             ) : (
               rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 whitespace-nowrap">{new Date(row.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-3">{row.action}</td>
-                  <td className="px-4 py-3">
+                <TableRow key={row.id}>
+                  <TableCell className="whitespace-nowrap">{new Date(row.created_at).toLocaleString()}</TableCell>
+                  <TableCell className="font-medium">{row.action}</TableCell>
+                  <TableCell className="whitespace-normal">
                     {row.entity_type}
                     <span className="mt-1 block text-xs text-muted-foreground">{row.entity_id}</span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{summarize(row.metadata)}</td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="max-w-md whitespace-normal text-muted-foreground">{summarize(row.metadata)}</TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

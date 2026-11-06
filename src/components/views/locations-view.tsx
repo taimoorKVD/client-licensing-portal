@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { TableEmpty } from "@/components/portal/empty-state";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Table,
   TableBody,
@@ -47,25 +49,21 @@ export function LocationsView() {
           <Input
             id="location-search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onValueChange={setQuery}
             placeholder="Name, city, or street"
+            className="h-10"
           />
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="location-state">State</Label>
-          <select
-            id="location-state"
-            value={state}
-            onChange={(event) => setState(event.target.value)}
-            className="h-9 rounded-xl border border-input bg-card px-2.5 text-sm"
-          >
+          <NativeSelect id="location-state" value={state} onChange={(event) => setState(event.target.value)}>
             <option value="all">All states</option>
             {states.map((code) => (
               <option key={code} value={code}>
                 {code}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
@@ -110,11 +108,12 @@ export function LocationsView() {
               );
             })}
             {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={isAdmin ? 5 : 4} className="py-8 text-center text-muted-foreground">
-                  No locations match this search.
-                </TableCell>
-              </TableRow>
+              <TableEmpty
+                colSpan={isAdmin ? 5 : 4}
+                icon="map"
+                title="No locations match"
+                description="No locations match this search. Try another name, city, or state."
+              />
             ) : null}
           </TableBody>
         </Table>

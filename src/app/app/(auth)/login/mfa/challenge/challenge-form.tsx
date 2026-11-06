@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { APP_HOME } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/client";
+import { PendingLabel } from "@/components/portal/brand-loader";
+import { InlineNotice } from "@/components/portal/inline-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,11 +55,7 @@ export function ChallengeForm() {
 
   return (
     <form onSubmit={verify} className="grid gap-4">
-      {error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineNotice tone="error">{error}</InlineNotice> : null}
       <div className="grid gap-2">
         <Label htmlFor="code">Authenticator code</Label>
         <Input
@@ -65,13 +63,13 @@ export function ChallengeForm() {
           inputMode="numeric"
           autoComplete="one-time-code"
           value={code}
-          onChange={(event) => setCode(event.target.value)}
+          onValueChange={setCode}
           required
           className="h-10"
         />
       </div>
       <Button type="submit" disabled={pending} className="h-10">
-        {pending ? "Checking…" : "Continue"}
+        <PendingLabel pending={pending} idle="Continue" busy="Checking…" />
       </Button>
     </form>
   );

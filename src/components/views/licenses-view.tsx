@@ -1,16 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LicenseTable } from "@/components/portal/license-table";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { DISPLAY_STATUSES, STATUS_LABEL, daysUntilExpiry, displayStatus } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 
 export function LicensesView() {
-  const { isAdmin, organizations, locations, licenses } = usePortal();
+  const { isAdmin, can, organizations, locations, licenses } = usePortal();
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -63,6 +67,17 @@ export function LicensesView() {
         eyebrow="Credentials"
         title={isAdmin ? "The license book.\nSearch the whole set." : "Your licenses.\nNothing outside this pharmacy."}
         description={`${sorted.length} showing. Search covers the number, type, authority, holder, and pharmacy name.`}
+        actions={
+          can("staff.licenses.import") ? (
+            <Link href={appPath("/import")} className={buttonVariants()}>
+              Import roster
+            </Link>
+          ) : (
+            <Link href={appPath("/licenses?status=expiring")} className={buttonVariants({ variant: "outline" })}>
+              Review renewals
+            </Link>
+          )
+        }
       />
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
@@ -71,8 +86,9 @@ export function LicensesView() {
           <Input
             id="license-search"
             value={query}
-            onChange={(event) => update({ q: event.target.value })}
+            onValueChange={(value) => update({ q: value })}
             placeholder="PH-WA-104482 or DEA"
+            className="h-10"
           />
         </div>
         <Filter
@@ -131,6 +147,18 @@ export function LicensesView() {
         organizations={organizations}
         locations={locations}
         showOrganization={isAdmin}
+        emptyAction={
+          <>
+            <Link href={appPath("/licenses")} className={buttonVariants({ variant: "outline" })}>
+              Clear filters
+            </Link>
+            {can("staff.licenses.import") ? (
+              <Link href={appPath("/import")} className={buttonVariants()}>
+                Import a roster
+              </Link>
+            ) : null}
+          </>
+        }
       />
     </div>
   );
@@ -167,18 +195,13 @@ function Filter({
   return (
     <div className="grid gap-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-9 rounded-xl border border-input bg-card px-2.5 text-sm"
-      >
+      <NativeSelect id={id} value={value} onChange={(event) => onChange(event.target.value)}>
         {options.map(([optionValue, optionLabel]) => (
           <option key={optionValue} value={optionValue}>
             {optionLabel}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   );
 }

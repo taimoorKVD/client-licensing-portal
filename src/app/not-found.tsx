@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { BrandMark } from "@/components/portal/brand-mark";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_HOME } from "@/lib/paths";
 
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-[70svh] max-w-lg flex-col justify-center px-6 py-16">
+      <BrandMark className="mb-4 size-8 text-primary" />
       <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">Missing page</p>
       <h1 className="mt-3 text-3xl font-extrabold tracking-tight">That page is not here</h1>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">

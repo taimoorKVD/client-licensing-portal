@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CalendarRange, FileStack, ShieldCheck, TriangleAlert } from "lucide-react";
+import { EmptyState } from "@/components/portal/empty-state";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import { StatusBadge } from "@/components/portal/status-badge";
@@ -207,7 +208,14 @@ export function OverviewView() {
               </li>
             ))}
             {activity.length === 0 ? (
-              <li className="text-sm text-muted-foreground">No notes for this pharmacy yet.</li>
+              <li>
+                <EmptyState
+                  icon="note"
+                  title="No notes yet"
+                  description="No notes for this pharmacy yet."
+                  className="px-2 py-6"
+                />
+              </li>
             ) : null}
           </ul>
         </div>
@@ -251,7 +259,7 @@ function Stat({
   alert?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)]">
+    <div className="flex items-start justify-between rounded-2xl border border-border bg-card px-4 py-4 shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)] transition-shadow duration-200 hover:shadow-[0_8px_24px_-16px_oklch(0.45_0.08_155/0.45)]">
       <div>
         <p className="text-sm text-muted-foreground">{label}</p>
         <p className={cn("mt-2 text-4xl font-semibold tracking-tight tabular-nums", alert ? "text-destructive" : "text-primary")}>

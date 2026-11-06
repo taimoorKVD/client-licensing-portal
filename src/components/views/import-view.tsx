@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PendingLabel } from "@/components/portal/brand-loader";
+import { InlineNotice } from "@/components/portal/inline-notice";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -19,6 +21,7 @@ import { IMPORT_FIELDS, suggestColumnMap, type ColumnMap } from "@/lib/import/fi
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/import/parse-workbook";
 import { validateWorkbook, type ValidatedRow } from "@/lib/import/validate";
 import type { ImportSummary } from "@/lib/import/commit";
+import { NativeSelect } from "@/components/ui/native-select";
 import { APP_HOME, appPath } from "@/lib/paths";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -51,6 +54,7 @@ export function ImportView() {
   const [columnMap, setColumnMap] = useState<ColumnMap>({});
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [error, setError] = useState("");
+  const [committing, setCommitting] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) router.replace(APP_HOME);
@@ -105,14 +109,21 @@ export function ImportView() {
   }
 
   async function commit() {
+    if (committing) return;
     const rows = ready.flatMap((row) => (row.values ? [row.values] : []));
+    setCommitting(true);
+    setError("");
     try {
       const result = await importRows(rows);
       setSummary(result);
       setStep("Import");
       toast.success(`${result.licensesCreated} licenses added to the book`);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "The import did not finish.");
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "The import did not finish.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setCommitting(false);
     }
   }
 
@@ -134,11 +145,11 @@ export function ImportView() {
             <li key={item} className="min-w-0">
               <div
                 className={cn(
-                  "mb-2 h-1 rounded-full",
+                  "mb-2 h-1 rounded-full transition-colors duration-300",
                   state === "later" ? "bg-border" : "bg-primary",
                 )}
               />
-              <p className={cn("truncate text-xs", state === "current" ? "font-medium" : "text-muted-foreground")}>
+              <p className={cn("truncate text-xs transition-colors", state === "current" ? "font-semibold text-foreground" : "text-muted-foreground")}>
                 {index + 1}. {item}
               </p>
             </li>
@@ -146,11 +157,7 @@ export function ImportView() {
         })}
       </ol>
 
-      {error ? (
-        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineNotice tone="error">{error}</InlineNotice> : null}
 
       {step === "Source" ? (
         <div className="grid gap-4 lg:grid-cols-3">
@@ -177,7 +184,7 @@ export function ImportView() {
                 id="roster-file"
                 type="file"
                 accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="text-sm"
+                className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
                 onChange={async (event) => {
                   const file = event.target.files?.[0];
                   if (!file) return;
@@ -208,9 +215,9 @@ export function ImportView() {
             </div>
           </div>
           {missingRequired.length > 0 ? (
-            <p className="text-sm text-destructive">
+            <InlineNotice tone="error">
               Still unmapped: {missingRequired.map((field) => field.label).join(", ")}.
-            </p>
+            </InlineNotice>
           ) : null}
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
             <Table>
@@ -232,7 +239,7 @@ export function ImportView() {
                         {field.required ? <span className="text-destructive"> *</span> : null}
                       </TableCell>
                       <TableCell>
-                        <select
+                        <NativeSelect
                           aria-label={`Column for ${field.label}`}
                           value={header ?? ""}
                           onChange={(event) => {
@@ -244,7 +251,7 @@ export function ImportView() {
                               return next;
                             });
                           }}
-                          className="h-8 w-full max-w-xs rounded-lg border border-input bg-transparent px-2 text-sm"
+                          className="h-9 max-w-xs"
                         >
                           <option value="">{field.required ? "Choose a column" : "Ignore"}</option>
                           {parsed.headers.map((item) => (
@@ -252,7 +259,7 @@ export function ImportView() {
                               {item}
                             </option>
                           ))}
-                        </select>
+                        </NativeSelect>
                       </TableCell>
                       <TableCell className="max-w-64 truncate text-muted-foreground">
                         {sample || "—"}
@@ -302,7 +309,13 @@ export function ImportView() {
               <Button variant="outline" onClick={() => setStep("Validate")}>
                 Back
               </Button>
-              <Button onClick={commit}>Import {ready.length} licenses</Button>
+              <Button onClick={commit} disabled={committing || ready.length === 0}>
+                <PendingLabel
+                  pending={committing}
+                  idle={`Import ${ready.length} licenses`}
+                  busy="Importing…"
+                />
+              </Button>
             </div>
           </div>
           <div className="overflow-hidden rounded-2xl border border-border bg-card">

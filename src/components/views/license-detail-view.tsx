@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { EmptyState } from "@/components/portal/empty-state";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import { StatusBadge } from "@/components/portal/status-badge";
@@ -129,9 +130,12 @@ export function LicenseDetailView({ id }: { id: string }) {
         <TabsContent value="documents" className="mt-4">
           <div className="grid gap-3">
             {documents.length === 0 ? (
-              <div className="rounded-xl border border-dashed px-4 py-8 text-sm text-muted-foreground">
-                No document slots are attached to this license yet.
-              </div>
+              <EmptyState
+                framed
+                icon="file"
+                title="No documents yet"
+                description="No document slots are attached to this license yet."
+              />
             ) : (
               documents.map((document) => (
                 <article

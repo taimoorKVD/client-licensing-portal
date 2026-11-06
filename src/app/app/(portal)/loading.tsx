@@ -1,3 +1,5 @@
+import { RouteLoading } from "@/components/portal/brand-loader";
+
 export default function Loading() {
-  return <p className="text-sm text-muted-foreground">Loading the book…</p>;
+  return <RouteLoading variant="overview" label="Loading the book" />;
 }

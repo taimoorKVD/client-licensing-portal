@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { EmptyState } from "@/components/portal/empty-state";
 import { StatusBadge } from "@/components/portal/status-badge";
 import {
   Table,
@@ -17,20 +19,23 @@ export function LicenseTable({
   organizations,
   locations,
   showOrganization = true,
+  emptyAction,
 }: {
   licenses: License[];
   organizations: Organization[];
   locations: Location[];
   showOrganization?: boolean;
+  emptyAction?: ReactNode;
 }) {
   if (licenses.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center">
-        <p className="font-heading text-lg">No licenses in this view</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Adjust the filters, or import a roster if you are working as CML.
-        </p>
-      </div>
+      <EmptyState
+        framed
+        icon="scroll"
+        title="No licenses in this view"
+        description="Adjust the filters, or import a roster if you are working as CML."
+        action={emptyAction}
+      />
     );
   }
 
@@ -77,8 +82,8 @@ export function LicenseTable({
                   </TableCell>
                 ) : null}
                 <TableCell>{location?.name ?? "—"}</TableCell>
-                <TableCell className="max-w-48">
-                  <div>{license.licenseType}</div>
+                <TableCell className="max-w-56 whitespace-normal">
+                  <div className="leading-5">{license.licenseType}</div>
                   {license.source === "import" ? (
                     <div className="text-xs text-muted-foreground">Imported</div>
                   ) : null}
