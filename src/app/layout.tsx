@@ -7,7 +7,7 @@ import "./globals.css";
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://clp.taimoorhussain.com"),
   title: {
     default: "CML Client Licensing",
     template: "%s · CML Licensing",

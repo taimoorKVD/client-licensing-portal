@@ -19,20 +19,21 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { signOut } from "@/lib/auth/actions";
 import type { Permission } from "@/lib/auth/access";
+import { APP_HOME, appPath } from "@/lib/paths";
 import { PERSONAS, type PersonaId } from "@/lib/domain";
 import type { DataSourceMode } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const NAV = [
-  { href: "/", label: "Overview", shortLabel: "Overview", icon: LayoutDashboard },
-  { href: "/organizations", label: "Organizations", shortLabel: "Your pharmacy", icon: Building2 },
-  { href: "/locations", label: "Locations", shortLabel: "Your locations", icon: MapPin },
-  { href: "/licenses", label: "Licenses", shortLabel: "Your licenses", icon: ScrollText },
-  { href: "/import", label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, permission: "staff.licenses.import" },
-  { href: "/admin/users", label: "Users", shortLabel: "Users", icon: Users, permission: "staff.users.read", liveOnly: true },
-  { href: "/admin/roles", label: "Roles", shortLabel: "Roles", icon: KeyRound, permission: "staff.roles.manage", liveOnly: true },
-  { href: "/admin/audit", label: "Audit", shortLabel: "Audit", icon: History, permission: "staff.audit.read", liveOnly: true },
+  { href: APP_HOME, label: "Overview", shortLabel: "Overview", icon: LayoutDashboard },
+  { href: appPath("/organizations"), label: "Organizations", shortLabel: "Your pharmacy", icon: Building2 },
+  { href: appPath("/locations"), label: "Locations", shortLabel: "Your locations", icon: MapPin },
+  { href: appPath("/licenses"), label: "Licenses", shortLabel: "Your licenses", icon: ScrollText },
+  { href: appPath("/import"), label: "Import roster", shortLabel: "Import roster", icon: FileSpreadsheet, permission: "staff.licenses.import" },
+  { href: appPath("/admin/users"), label: "Users", shortLabel: "Users", icon: Users, permission: "staff.users.read", liveOnly: true },
+  { href: appPath("/admin/roles"), label: "Roles", shortLabel: "Roles", icon: KeyRound, permission: "staff.roles.manage", liveOnly: true },
+  { href: appPath("/admin/audit"), label: "Audit", shortLabel: "Audit", icon: History, permission: "staff.audit.read", liveOnly: true },
 ] as const;
 
 export function PortalShell({
@@ -45,7 +46,7 @@ export function PortalShell({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { persona, mode } = usePortal();
-  const current = NAV.find((item) => (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)));
+  const current = NAV.find((item) => (item.href === APP_HOME ? pathname === APP_HOME : pathname.startsWith(item.href)));
 
   return (
     <div className="min-h-svh bg-background text-foreground">
@@ -110,7 +111,7 @@ function SidebarBody({ onNavigate }: { onNavigate: () => void }) {
 
 function Brand() {
   return (
-    <Link href="/" className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none">
+    <Link href={APP_HOME} className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none">
       <BrandMark className="size-7 text-primary transition-transform duration-200 group-hover:scale-105" />
       <span>
         <span className="block text-[15px] leading-none font-bold tracking-tight text-foreground">CML</span>
@@ -132,7 +133,7 @@ function SideNav({ onNavigate }: { onNavigate: () => void }) {
   return (
     <nav className="flex flex-1 flex-col gap-1 px-3" aria-label="Primary">
       {items.map((item) => {
-        const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+        const active = item.href === APP_HOME ? pathname === APP_HOME : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link

@@ -23,6 +23,7 @@ import {
   daysUntilExpiry,
   type LicenseStatus,
 } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 import { toast } from "sonner";
 
 export function LicenseDetailView({ id }: { id: string }) {
@@ -72,7 +73,7 @@ export function LicenseDetailView({ id }: { id: string }) {
               <Field
                 label="Pharmacy"
                 value={organization?.name ?? "—"}
-                href={organization ? `/organizations/${organization.id}` : undefined}
+                href={organization ? appPath(`/organizations/${organization.id}`) : undefined}
               />
               <Field
                 label="Location"

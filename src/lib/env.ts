@@ -2,18 +2,23 @@
  * Public Supabase settings. The secret key is intentionally not read here.
  * A NEXT_PUBLIC_ value is shipped to the browser, so SUPABASE_SECRET_KEY
  * must stay server-only and is read only by src/lib/auth/admin.ts.
+ *
+ * Read each NEXT_PUBLIC_ key as a static process.env.NAME access. Dynamic
+ * process.env[name] prevents Next/Turbopack from inlining the value into the
+ * client bundle, which leaves the browser unable to talk to Supabase.
  */
 
 export type DataSourceMode = "demo" | "supabase" | "unconfigured";
 
-function read(name: string): string {
-  return process.env[name]?.trim() ?? "";
+function trimEnv(value: string | undefined): string {
+  return value?.trim() ?? "";
 }
 
 export function getSupabaseEnv(): { url: string; publishableKey: string } {
-  const url = read("NEXT_PUBLIC_SUPABASE_URL");
+  const url = trimEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
   const publishableKey =
-    read("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") || read("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    trimEnv(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) ||
+    trimEnv(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   return { url, publishableKey };
 }
 

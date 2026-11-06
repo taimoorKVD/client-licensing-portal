@@ -16,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { appPath } from "@/lib/paths";
 
 export function LocationsView() {
   const { isAdmin, organizations, locations, licenses } = usePortal();
@@ -87,7 +88,7 @@ export function LocationsView() {
                   {isAdmin ? (
                     <TableCell>
                       {organization ? (
-                        <Link href={`/organizations/${organization.id}`} className="font-medium hover:text-primary hover:underline">
+                        <Link href={appPath(`/organizations/${organization.id}`)} className="font-medium hover:text-primary hover:underline">
                           {organization.name}
                         </Link>
                       ) : (

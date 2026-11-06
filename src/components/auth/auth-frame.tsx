@@ -15,7 +15,7 @@ export function AuthFrame({
     <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-background px-4 py-12">
       <BrandMark className="pointer-events-none absolute -top-6 right-[-2rem] size-56 text-primary/[0.08] sm:right-10" />
       <div className="relative w-full max-w-md animate-in fade-in duration-500">
-        <Link href="/login" className="group mb-8 flex items-center gap-2.5 rounded-lg">
+        <Link href="/" className="group mb-8 flex items-center gap-2.5 rounded-lg">
           <BrandMark className="size-7 text-primary transition-transform duration-200 group-hover:scale-105" />
           <span>
             <span className="block text-[15px] leading-none font-bold tracking-tight">CML</span>

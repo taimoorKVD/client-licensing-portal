@@ -9,6 +9,7 @@ import {
   type AccessScope,
 } from "@/lib/auth/access";
 import { requireStaffPermission } from "@/lib/auth/session";
+import { appPath } from "@/lib/paths";
 import {
   assignRoleSchema,
   createUserSchema,
@@ -99,7 +100,7 @@ export async function createPortalUser(_state: ActionResult | null, formData: Fo
     }
   }
 
-  revalidatePath("/admin/users");
+  revalidatePath(appPath("/admin/users"));
   return {
     ok: true,
     message: "Account created. Share the password through a channel you already trust. It is not stored in the audit log.",
@@ -150,7 +151,7 @@ export async function assignPortalRole(input: {
     if (error || !data?.length) return { ok: false, error: "The membership was not changed." };
   }
 
-  revalidatePath("/admin/users");
+  revalidatePath(appPath("/admin/users"));
   return { ok: true, message: "Role updated." };
 }
 
@@ -185,7 +186,7 @@ export async function setPortalUserDisabled(userId: string, disabled: boolean): 
   });
   if (banned.error) return { ok: false, error: "The profile changed, but the sign-in ban did not." };
 
-  revalidatePath("/admin/users");
+  revalidatePath(appPath("/admin/users"));
   return { ok: true, message: disabled ? "Account disabled." : "Account enabled." };
 }
 
@@ -214,7 +215,7 @@ export async function deletePortalUser(userId: string): Promise<ActionResult> {
     return { ok: false, error: "The account was not deleted." };
   }
 
-  revalidatePath("/admin/users");
+  revalidatePath(appPath("/admin/users"));
   return { ok: true, message: "Account deleted." };
 }
 
@@ -263,7 +264,7 @@ export async function createPortalRole(_state: ActionResult | null, formData: Fo
     return { ok: false, error: "The role permissions were not saved." };
   }
 
-  revalidatePath("/admin/roles");
+  revalidatePath(appPath("/admin/roles"));
   return { ok: true, message: "Role created." };
 }
 
@@ -321,7 +322,7 @@ export async function updatePortalRole(input: {
     if (error) return { ok: false, error: "Super admin permissions cannot be changed." };
   }
 
-  revalidatePath("/admin/roles");
+  revalidatePath(appPath("/admin/roles"));
   return { ok: true, message: "Role updated." };
 }
 
@@ -334,7 +335,7 @@ export async function deletePortalRole(roleId: string): Promise<ActionResult> {
 
   const { error } = await session.supabase.from("roles").delete().eq("id", role.id);
   if (error) return { ok: false, error: "Reassign accounts before deleting this role." };
-  revalidatePath("/admin/roles");
+  revalidatePath(appPath("/admin/roles"));
   return { ok: true, message: "Role deleted." };
 }
 

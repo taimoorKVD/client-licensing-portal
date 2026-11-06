@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { portalDestination, verifiedSession } from "@/lib/auth/session";
 import { emailSchema } from "@/lib/auth/schemas";
+import { LOGIN_PATH } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignInState = { error: string };
@@ -29,5 +30,5 @@ export async function signIn(_state: SignInState, formData: FormData): Promise<S
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect(LOGIN_PATH);
 }

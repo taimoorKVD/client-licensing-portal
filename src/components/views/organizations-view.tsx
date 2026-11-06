@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/dates";
 import { ORGANIZATION_STATUS_LABEL } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 import { organizationIssueCount } from "@/lib/metrics";
 import { OrganizationDetailView } from "@/components/views/organization-detail-view";
 
@@ -48,7 +49,7 @@ export function OrganizationsView() {
           return (
             <Link
               key={organization.id}
-              href={`/organizations/${organization.id}`}
+              href={appPath(`/organizations/${organization.id}`)}
               className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-accent/40"
             >
               <p className="font-semibold">{organization.name}</p>
@@ -82,7 +83,7 @@ export function OrganizationsView() {
               return (
                 <TableRow key={organization.id}>
                   <TableCell>
-                    <Link href={`/organizations/${organization.id}`} className="font-semibold hover:text-primary hover:underline">
+                    <Link href={appPath(`/organizations/${organization.id}`)} className="font-semibold hover:text-primary hover:underline">
                       {organization.name}
                     </Link>
                     <div className="text-xs text-muted-foreground">

@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/dates";
 import { ORGANIZATION_STATUS_LABEL } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 
 export function OrganizationDetailView({ id }: { id: string }) {
   const { isAdmin, organizationById, locations, licenses } = usePortal();
@@ -34,7 +35,7 @@ export function OrganizationDetailView({ id }: { id: string }) {
         description={organization.legalName}
         actions={
           <Link
-            href={`/licenses?org=${organization.id}`}
+            href={appPath(`/licenses?org=${organization.id}`)}
             className={buttonVariants({ variant: "outline" })}
           >
             All licenses

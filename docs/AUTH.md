@@ -2,6 +2,10 @@
 
 The portal is a Node.js Next.js server. Sign-in uses Supabase Auth email and password. There is no public signup. Authorization comes from database tables and Row Level Security, not from `user_metadata` or `app_metadata`.
 
+The public marketing site is `/`. It does not require a session. The application is `/app`, and sign-in is `/app/login`. Authenticator enrollment is `/app/login/mfa/enroll`. The code challenge is `/app/login/mfa/challenge`. Requests to `/login` and `/login/*` redirect to those same paths under `/app`.
+
+Hosted Supabase Site URL stays `https://clp.taimoorhussain.com`. Password sign-in stays on that origin, so the dashboard value does not need a path added.
+
 The reserved super admin is `hello@taimoorhussain.com`. This repository does not create that user and does not contain a password.
 
 ## Environment
@@ -101,4 +105,4 @@ Do not deploy the old static `out/` directory. The app no longer uses `output: "
 - Framework: Next.js server, not a static site. There is no output directory to publish.
 - Environment: the three variables in the table above
 
-`next build` does not bake the license book into static pages. Portal routes wait for the request.
+`next build` does not bake the license book into static pages. Portal routes wait for the request. The same Node process serves the public site at `/` and the application at `/app`. Do not publish an `out/` directory.

@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "lint": "eslint",
-    "test": "tsx --test src/lib/import/validate.test.ts src/lib/auth/access.test.ts src/lib/auth/schemas.test.ts src/lib/auth/boundary.test.ts src/lib/env.test.ts",
+    "test": "tsx --test src/lib/import/validate.test.ts src/lib/auth/access.test.ts src/lib/auth/schemas.test.ts src/lib/auth/boundary.test.ts src/lib/env.test.ts src/lib/paths.test.ts",
     "generate:samples": "node scripts/generate-samples.mjs",
     "generate:seed": "tsx scripts/emit-seed.ts"
   },

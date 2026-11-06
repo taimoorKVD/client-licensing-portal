@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { DISPLAY_STATUSES, STATUS_LABEL, daysUntilExpiry, displayStatus } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 
 export function LicensesView() {
   const { isAdmin, can, organizations, locations, licenses } = usePortal();
@@ -68,11 +69,11 @@ export function LicensesView() {
         description={`${sorted.length} showing. Search covers the number, type, authority, holder, and pharmacy name.`}
         actions={
           can("staff.licenses.import") ? (
-            <Link href="/import" className={buttonVariants()}>
+            <Link href={appPath("/import")} className={buttonVariants()}>
               Import roster
             </Link>
           ) : (
-            <Link href="/licenses?status=expiring" className={buttonVariants({ variant: "outline" })}>
+            <Link href={appPath("/licenses?status=expiring")} className={buttonVariants({ variant: "outline" })}>
               Review renewals
             </Link>
           )
@@ -148,11 +149,11 @@ export function LicensesView() {
         showOrganization={isAdmin}
         emptyAction={
           <>
-            <Link href="/licenses" className={buttonVariants({ variant: "outline" })}>
+            <Link href={appPath("/licenses")} className={buttonVariants({ variant: "outline" })}>
               Clear filters
             </Link>
             {can("staff.licenses.import") ? (
-              <Link href="/import" className={buttonVariants()}>
+              <Link href={appPath("/import")} className={buttonVariants()}>
                 Import a roster
               </Link>
             ) : null}

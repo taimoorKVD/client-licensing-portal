@@ -74,5 +74,9 @@ describe("auth boundaries in source", () => {
     assert.match(config, /verify_enabled = true/);
     const configCode = nextConfig.replace(/\/\*[\s\S]*?\*\//g, "");
     assert.doesNotMatch(configCode, /output\s*:/);
+    assert.match(nextConfig, /source:\s*"\/login"/);
+    assert.match(nextConfig, /destination:\s*"\/app\/login"/);
+    assert.match(nextConfig, /source:\s*"\/login\/:path\*"/);
+    assert.match(nextConfig, /destination:\s*"\/app\/login\/:path\*"/);
   });
 });

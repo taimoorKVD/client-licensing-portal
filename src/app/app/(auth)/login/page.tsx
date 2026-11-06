@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { AuthFrame } from "@/components/auth/auth-frame";
 import { portalDestination, verifiedSession } from "@/lib/auth/session";
+import { APP_HOME } from "@/lib/paths";
 import { getDataSource } from "@/lib/env";
 import { LoginForm } from "./login-form";
 
@@ -25,7 +26,7 @@ export default async function LoginPage({
   await connection();
   const source = getDataSource();
   if (source === "demo") {
-    redirect("/");
+    redirect(APP_HOME);
   }
   if (source === "supabase") {
     const session = await verifiedSession();

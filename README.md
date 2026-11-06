@@ -22,7 +22,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). With no Supabase values, `npm run dev` shows a local preview of the sample book and a persona switcher. That preview is not used in production, and it is not used when the public Supabase values are set.
+Open [http://localhost:3000](http://localhost:3000) for the public site. The application is at [http://localhost:3000/app](http://localhost:3000/app). With no Supabase values, `npm run dev` shows a local preview of the sample book and a persona switcher at `/app`. That preview is not used in production, and it is not used when the public Supabase values are set. Sign-in is `/app/login`. A visit to `/login` redirects there.
 
 ```bash
 npm test
@@ -54,7 +54,7 @@ On **Import roster**, choose **Use this file** for either workbook. The clean fi
 
 `src/lib/data/supabase-repository.ts` reads and writes with the signed-in user's session. Account administration uses `SUPABASE_SECRET_KEY` only on the server, in `src/lib/auth/admin.ts`. The browser never receives it.
 
-Auth cookies are refreshed in `src/proxy.ts`. The proxy calls `getClaims()` and does not trust `getSession()`. Staff must finish authenticator enrollment or a code challenge before the book layout loads. The first staff sign-in is enrollment. See [docs/AUTH.md](docs/AUTH.md).
+Auth cookies are refreshed in `src/proxy.ts`. The proxy calls `getClaims()` and does not trust `getSession()`. The marketing page at `/` stays public. Unauthenticated visits to `/app` go to `/app/login`. Staff must finish authenticator enrollment or a code challenge before the book layout loads. The first staff sign-in is enrollment. See [docs/AUTH.md](docs/AUTH.md).
 
 ### Local database
 
@@ -86,18 +86,22 @@ Create `hello@taimoorhussain.com` in Studio, then run `select private.bootstrap_
 ## Layout
 
 ```
-src/app                         routes
-src/app/(auth)                  sign-in and authenticator enrollment
-src/app/(portal)/admin          users, roles, audit
+src/app                         public marketing site at /
+src/app/app/(auth)              sign-in and authenticator enrollment at /app/login
+src/app/app/(portal)            license book at /app
+src/app/app/(portal)/admin      users, roles, audit
+src/components/marketing        public homepage
 src/components/portal           shell, tables
 src/components/views            dashboard, book, import
 src/lib/auth                    permissions, session, admin API
+src/lib/paths.ts                / and /app route prefixes
 src/lib/data                    repository boundary
 src/lib/import                  parse, map, validate, commit
 src/lib/supabase                browser client, server client, proxy
 supabase/migrations             schema and RLS
 docs/AUTH.md                    environment, bootstrap, MFA, Hostinger
 public/samples                  generated xlsx and pdf
+public/marketing                homepage screenshot
 ```
 
 The local preview still has a persona switcher so the sample book can be opened without keys. With Supabase configured, that switcher is gone and the split is staff assignments versus pharmacy memberships.
