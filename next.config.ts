@@ -5,6 +5,20 @@ import type { NextConfig } from "next";
  * Keep the default server output. A static export has no sessions and no auth.
  */
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/login",
+        destination: "/app/login",
+        permanent: false,
+      },
+      {
+        source: "/login/:path*",
+        destination: "/app/login/:path*",
+        permanent: false,
+      },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

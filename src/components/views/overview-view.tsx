@@ -14,6 +14,7 @@ import {
   type License,
 } from "@/lib/domain";
 import { licenseMetrics, organizationIssueCount, renewalWindows } from "@/lib/metrics";
+import { appPath } from "@/lib/paths";
 import { cn } from "@/lib/utils";
 
 export function OverviewView() {
@@ -40,11 +41,11 @@ export function OverviewView() {
         }
         actions={
           can("staff.licenses.import") ? (
-            <Link href="/import" className={buttonVariants()}>
+            <Link href={appPath("/import")} className={buttonVariants()}>
               Import roster
             </Link>
           ) : (
-            <Link href="/licenses?status=expiring" className={buttonVariants({ variant: "outline" })}>
+            <Link href={appPath("/licenses?status=expiring")} className={buttonVariants({ variant: "outline" })}>
               Review renewals
             </Link>
           )
@@ -80,7 +81,7 @@ export function OverviewView() {
                   <span className="absolute top-3 left-[calc(50%+1rem)] hidden h-px w-[calc(100%-1rem)] bg-border md:block" />
                 ) : null}
                 <Link
-                  href={`/licenses?within=${window.id}`}
+                  href={appPath(`/licenses?within=${window.id}`)}
                   className={cn(
                     "relative flex h-full flex-col rounded-2xl border px-3 py-3 transition-colors",
                     selected
@@ -112,7 +113,7 @@ export function OverviewView() {
       <section>
         <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="text-lg font-semibold">On the desk</h2>
-          <Link href="/licenses" className="text-sm font-semibold text-primary hover:underline">
+          <Link href={appPath("/licenses")} className="text-sm font-semibold text-primary hover:underline">
             View all licenses
           </Link>
         </div>
@@ -126,7 +127,7 @@ export function OverviewView() {
             return (
               <Link
                 key={license.id}
-                href={`/licenses/${license.id}`}
+                href={appPath(`/licenses/${license.id}`)}
                 className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)] transition-colors hover:border-primary/40 hover:bg-accent/40"
               >
                 <StatusBadge license={license} className="w-fit" />
@@ -175,7 +176,7 @@ export function OverviewView() {
               return (
                 <li key={organization.id}>
                   <Link
-                    href={`/organizations/${organization.id}`}
+                    href={appPath(`/organizations/${organization.id}`)}
                     className="flex items-center justify-between gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-accent/70"
                   >
                     <span>

@@ -6,6 +6,8 @@
  * tables, and the protected super admin is an email plus a locked row.
  */
 
+import { APP_HOME, MFA_CHALLENGE_PATH, MFA_ENROLL_PATH } from "@/lib/paths";
+
 export const PROTECTED_SUPER_ADMIN_EMAIL = "hello@taimoorhussain.com";
 
 export const ACCESS_SCOPES = ["staff", "tenant"] as const;
@@ -127,10 +129,12 @@ export function mfaGate(input: {
   return "challenge";
 }
 
-export function mfaPath(step: MfaStep): "/login/mfa/enroll" | "/login/mfa/challenge" | "/" {
-  if (step === "enroll") return "/login/mfa/enroll";
-  if (step === "challenge") return "/login/mfa/challenge";
-  return "/";
+export function mfaPath(
+  step: MfaStep,
+): typeof MFA_ENROLL_PATH | typeof MFA_CHALLENGE_PATH | typeof APP_HOME {
+  if (step === "enroll") return MFA_ENROLL_PATH;
+  if (step === "challenge") return MFA_CHALLENGE_PATH;
+  return APP_HOME;
 }
 
 export type ProtectedStaffAction = "delete" | "demote" | "disable" | "change_role" | "change_email";

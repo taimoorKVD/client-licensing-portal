@@ -10,6 +10,7 @@ import {
   type Permission,
   type PortalActor,
 } from "@/lib/auth/access";
+import { APP_HOME, LOGIN_END_PATH, LOGIN_PATH } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/server";
 
 type ProfileRow = {
@@ -167,8 +168,8 @@ export async function portalDestination(session: {
     .eq("user_id", session.userId)
     .maybeSingle();
   if (error) throw error;
-  if (!profile) return "/login/end?reason=unprovisioned";
-  if ((profile as { disabled_at: string | null }).disabled_at) return "/login/end?reason=disabled";
+  if (!profile) return `${LOGIN_END_PATH}?reason=unprovisioned`;
+  if ((profile as { disabled_at: string | null }).disabled_at) return `${LOGIN_END_PATH}?reason=disabled`;
   const kind = (profile as { actor_kind: ActorKind }).actor_kind;
   const factors = await verifiedFactorCount(session.supabase);
   return mfaPath(mfaGate({ kind, verifiedFactorCount: factors, currentLevel: session.aal }));
@@ -177,11 +178,11 @@ export async function portalDestination(session: {
 /** Portal pages and mutations. Sends incomplete MFA and unknown accounts away. */
 export async function requirePortalSession(): Promise<PortalSession> {
   const session = await verifiedSession();
-  if (!session) redirect("/login");
+  if (!session) redirect(LOGIN_PATH);
   const destination = await portalDestination(session);
-  if (destination !== "/") redirect(destination);
+  if (destination !== APP_HOME) redirect(destination);
   const actor = await loadActor(session.supabase, session.userId);
-  if (!actor) redirect("/login/end?reason=unprovisioned");
+  if (!actor) redirect(`${LOGIN_END_PATH}?reason=unprovisioned`);
   const factors = await verifiedFactorCount(session.supabase);
   return { ...session, actor, verifiedFactorCount: factors };
 }
@@ -189,7 +190,7 @@ export async function requirePortalSession(): Promise<PortalSession> {
 export async function requireStaffPermission(permission: Permission): Promise<PortalSession> {
   const session = await requirePortalSession();
   if (session.actor.kind !== "staff" || !session.actor.permissions.includes(permission)) {
-    redirect("/");
+    redirect(APP_HOME);
   }
   return session;
 }

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/dates";
 import type { License, Location, Organization } from "@/lib/domain";
+import { appPath } from "@/lib/paths";
 
 export function LicenseTable({
   licenses,
@@ -54,7 +55,7 @@ export function LicenseTable({
               <TableRow key={license.id}>
                 <TableCell>
                   <Link
-                    href={`/licenses/${license.id}`}
+                    href={appPath(`/licenses/${license.id}`)}
                     className="font-semibold text-foreground underline-offset-4 hover:text-primary hover:underline"
                   >
                     {license.licenseNumber}
@@ -65,7 +66,7 @@ export function LicenseTable({
                   <TableCell>
                     {organization ? (
                       <Link
-                        href={`/organizations/${organization.id}`}
+                        href={appPath(`/organizations/${organization.id}`)}
                         className="hover:underline"
                       >
                         {organization.name}

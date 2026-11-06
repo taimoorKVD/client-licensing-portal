@@ -13,7 +13,7 @@ export function AuthFrame({
   return (
     <main className="flex min-h-svh items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-md">
-        <Link href="/login" className="mb-8 flex items-center gap-2.5">
+        <Link href="/" className="mb-8 flex items-center gap-2.5">
           <svg viewBox="0 0 32 32" className="size-7 text-primary" aria-hidden>
             <path fill="currentColor" d="M13 2h6v9h11v6H19v13h-6V17H2v-6h11V2z" />
           </svg>

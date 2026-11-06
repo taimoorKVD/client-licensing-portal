@@ -1,10 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/env";
-
-function isPublicPath(pathname: string): boolean {
-  return pathname === "/login" || pathname.startsWith("/login/");
-}
+import { LOGIN_PATH, isAppPath, isPublicPath, legacyLoginPath } from "@/lib/paths";
 
 function redirectWithSession(url: URL, sessionResponse: NextResponse) {
   const redirect = NextResponse.redirect(url);
@@ -19,7 +16,16 @@ function redirectWithSession(url: URL, sessionResponse: NextResponse) {
 }
 
 export async function updateSession(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  const legacy = legacyLoginPath(request.nextUrl.pathname);
+  if (legacy) {
+    const destination = request.nextUrl.clone();
+    destination.pathname = legacy;
+    return NextResponse.redirect(destination);
+  }
+
+  // The marketing site and any other non-app URL stay reachable with no session
+  // and do not wait on Supabase. Sign-in lives under /app, so it still refreshes.
+  if (!isAppPath(request.nextUrl.pathname) || !isSupabaseConfigured()) {
     return NextResponse.next({ request });
   }
 
@@ -47,12 +53,18 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Refresh and verify the session. Do not trust getSession() in the proxy.
-  const { data } = await supabase.auth.getClaims();
-  const authenticated = Boolean(data?.claims?.sub);
+  // A failed check closes the book. It does not open it.
+  let authenticated = false;
+  try {
+    const { data } = await supabase.auth.getClaims();
+    authenticated = Boolean(data?.claims?.sub);
+  } catch {
+    authenticated = false;
+  }
 
   if (!authenticated && !isPublicPath(request.nextUrl.pathname)) {
     const login = request.nextUrl.clone();
-    login.pathname = "/login";
+    login.pathname = LOGIN_PATH;
     login.search = "";
     return redirectWithSession(login, supabaseResponse);
   }

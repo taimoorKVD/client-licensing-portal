@@ -139,3 +139,24 @@
     outline-offset: 2px;
   }
 }
+
+.clp-reveal {
+  transition: opacity 0.7s, transform 0.7s;
+}
+
+.clp-reveal[data-pending="true"]:not(.is-in) {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.clp-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clp-reveal[data-pending="true"]:not(.is-in) {
+    opacity: 1;
+    transform: none;
+  }
+}

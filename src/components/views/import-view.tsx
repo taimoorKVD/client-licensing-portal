@@ -19,6 +19,7 @@ import { IMPORT_FIELDS, suggestColumnMap, type ColumnMap } from "@/lib/import/fi
 import { parseWorkbook, type ParsedWorkbook } from "@/lib/import/parse-workbook";
 import { validateWorkbook, type ValidatedRow } from "@/lib/import/validate";
 import type { ImportSummary } from "@/lib/import/commit";
+import { APP_HOME, appPath } from "@/lib/paths";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -52,7 +53,7 @@ export function ImportView() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!isAdmin) router.replace("/");
+    if (!isAdmin) router.replace(APP_HOME);
   }, [isAdmin, router]);
 
   const validated = useMemo(() => {
@@ -345,7 +346,7 @@ export function ImportView() {
             <Summary label="Licenses added" value={summary.licensesCreated} />
           </dl>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href="/licenses" className={buttonVariants()}>
+            <Link href={appPath("/licenses")} className={buttonVariants()}>
               Open the license book
             </Link>
             <Button

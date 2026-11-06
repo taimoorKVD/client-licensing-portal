@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { APP_HOME } from "@/lib/paths";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +63,7 @@ export function EnrollForm() {
       setError(verified.error.message);
       return;
     }
-    router.push("/");
+    router.push(APP_HOME);
     router.refresh();
   }
 

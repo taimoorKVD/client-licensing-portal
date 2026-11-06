@@ -5,6 +5,7 @@ import { canImportRoster, canWriteLicenses } from "@/lib/auth/access";
 import { requirePortalSession } from "@/lib/auth/session";
 import { importRosterSchema, licenseStatusUpdateSchema } from "@/lib/auth/schemas";
 import { PORTAL_AS_OF } from "@/lib/dates";
+import { appPath } from "@/lib/paths";
 import type { ImportSummary } from "@/lib/import/commit";
 import type { LicenseStatus } from "@/lib/domain";
 
@@ -29,9 +30,9 @@ export async function updateLicenseStatus(
   if (error || !data?.length) {
     return { ok: false, error: "The license was not updated." };
   }
-  revalidatePath("/licenses");
-  revalidatePath(`/licenses/${parsed.data.id}`);
-  revalidatePath("/");
+  revalidatePath(appPath("/licenses"));
+  revalidatePath(appPath(`/licenses/${parsed.data.id}`));
+  revalidatePath(appPath("/"));
   return { ok: true };
 }
 
@@ -166,10 +167,10 @@ export async function importRoster(
     known.add(key);
   }
 
-  revalidatePath("/");
-  revalidatePath("/licenses");
-  revalidatePath("/organizations");
-  revalidatePath("/locations");
+  revalidatePath(appPath("/"));
+  revalidatePath(appPath("/licenses"));
+  revalidatePath(appPath("/organizations"));
+  revalidatePath(appPath("/locations"));
   return {
     ok: true,
     data: {
