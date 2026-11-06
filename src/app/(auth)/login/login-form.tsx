@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { signIn, type SignInState } from "@/lib/auth/actions";
+import { InlineNotice } from "@/components/portal/inline-notice";
+import { PendingLabel } from "@/components/portal/brand-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,12 +15,8 @@ export function LoginForm({ notice }: { notice?: string }) {
 
   return (
     <form action={action} className="grid gap-4">
-      {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
-      {state.error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+      {notice ? <InlineNotice>{notice}</InlineNotice> : null}
+      {state.error ? <InlineNotice tone="error">{state.error}</InlineNotice> : null}
       <div className="grid gap-2">
         <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" autoComplete="username" required className="h-10" />
@@ -35,7 +33,7 @@ export function LoginForm({ notice }: { notice?: string }) {
         />
       </div>
       <Button type="submit" disabled={pending} className="h-10">
-        {pending ? "Signing in…" : "Sign in"}
+        <PendingLabel pending={pending} idle="Sign in" busy="Signing in…" />
       </Button>
       <p className="text-xs leading-5 text-muted-foreground">
         CML issues every account. This portal has no public registration.

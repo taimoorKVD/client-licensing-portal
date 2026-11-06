@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { EmptyState } from "@/components/portal/empty-state";
 import { PageHeader } from "@/components/portal/page-header";
 import { usePortal } from "@/components/portal/portal-provider";
 import {
@@ -30,6 +31,15 @@ export function OrganizationsView() {
         title={"The pharmacies\nCML already serves."}
         description="This is the managed roster. A later subscription flow can add a pharmacy without a CML operator."
       />
+      {organizations.length === 0 ? (
+        <EmptyState
+          framed
+          icon="building"
+          title="No pharmacies in this view"
+          description="The managed roster is empty for the account you are viewing."
+        />
+      ) : (
+      <>
       <div className="grid gap-3 md:hidden">
         {organizations.map((organization) => {
           const locationCount = locations.filter((item) => item.organizationId === organization.id).length;
@@ -90,6 +100,8 @@ export function OrganizationsView() {
           </TableBody>
         </Table>
       </div>
+      </>
+      )}
     </div>
   );
 }

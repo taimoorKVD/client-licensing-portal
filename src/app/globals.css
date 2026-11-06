@@ -46,6 +46,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-brand-pulse: brand-pulse 1.6s ease-in-out infinite;
+  --animate-brand-spin: brand-spin 1.15s linear infinite;
+  --animate-skeleton: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
 :root {
@@ -134,8 +137,46 @@
   a:focus-visible,
   button:focus-visible,
   select:focus-visible,
-  input:focus-visible {
+  input:focus-visible,
+  textarea:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  input[type="checkbox"] {
+    accent-color: var(--primary);
+  }
+}
+
+@keyframes brand-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.86);
+    opacity: 0.72;
+  }
+}
+
+@keyframes brand-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-motion,
+  .brand-motion * {
+    animation: none !important;
   }
 }

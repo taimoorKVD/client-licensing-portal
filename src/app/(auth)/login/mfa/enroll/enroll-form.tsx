@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { BrandLoader, PendingLabel } from "@/components/portal/brand-loader";
+import { InlineNotice } from "@/components/portal/inline-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,17 +75,15 @@ export function EnrollForm() {
         step succeeds. The first sign-in is enrollment because Supabase does not require a second factor until one is
         verified.
       </p>
-      {error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <InlineNotice tone="error">{error}</InlineNotice> : null}
       {qr ? (
         // The SVG is a data URL from the signed-in user's own enrollment call.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={qr} alt="Authenticator QR code" className="mx-auto size-48 rounded-lg bg-white p-2" />
+        <img src={qr} alt="Authenticator QR code" className="mx-auto size-48 rounded-xl border border-border bg-white p-2" />
       ) : (
-        <p className="text-sm text-muted-foreground">Preparing the authenticator…</p>
+        <div className="grid h-48 place-items-center rounded-xl border border-dashed border-primary/25 bg-accent/40">
+          <BrandLoader label="Preparing the authenticator" />
+        </div>
       )}
       {secret ? (
         <p className="break-all rounded-lg bg-muted px-3 py-2 font-mono text-xs">
@@ -100,13 +100,13 @@ export function EnrollForm() {
           inputMode="numeric"
           autoComplete="one-time-code"
           value={code}
-          onChange={(event) => setCode(event.target.value)}
+          onValueChange={setCode}
           required
           className="h-10"
         />
       </div>
       <Button type="submit" disabled={pending || !factorId} className="h-10">
-        {pending ? "Checking…" : "Enable authenticator"}
+        <PendingLabel pending={pending} idle="Enable authenticator" busy="Checking…" />
       </Button>
     </form>
   );

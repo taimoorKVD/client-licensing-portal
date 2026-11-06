@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { RouteLoading } from "@/components/portal/brand-loader";
 import { OrganizationDetailView } from "@/components/views/organization-detail-view";
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export default function OrganizationPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<p className="text-sm text-muted-foreground">Opening pharmacy…</p>}>
+    <Suspense fallback={<RouteLoading variant="detail" label="Opening pharmacy" />}>
       <OrganizationLoader params={params} />
     </Suspense>
   );

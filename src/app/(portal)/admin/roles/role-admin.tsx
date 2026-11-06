@@ -2,10 +2,14 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PendingLabel } from "@/components/portal/brand-loader";
+import { EmptyState } from "@/components/portal/empty-state";
+import { InlineNotice } from "@/components/portal/inline-notice";
 import { PageHeader } from "@/components/portal/page-header";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { createPortalRole, deletePortalRole, updatePortalRole, type ActionResult } from "@/lib/auth/admin-actions";
 import {
   PERMISSION_LABEL,
@@ -23,13 +27,27 @@ export function RoleAdmin({ roles }: { roles: ManagedRole[] }) {
         eyebrow="Roles"
         title={"Permissions,\nkept on the server."}
         description="Custom roles can be edited. The super admin role stays locked, and a pharmacy role cannot receive CML staff permissions."
+        actions={
+          <a href="#new-role" className={buttonVariants()}>
+            New role
+          </a>
+        }
       />
       <CreateRole />
-      <div className="grid gap-4">
-        {roles.map((role) => (
-          <RoleCard key={role.id} role={role} />
-        ))}
-      </div>
+      {roles.length === 0 ? (
+        <EmptyState
+          framed
+          icon="key"
+          title="No roles yet"
+          description="Custom roles you create will be listed here. System roles stay locked."
+        />
+      ) : (
+        <div className="grid gap-4">
+          {roles.map((role) => (
+            <RoleCard key={role.id} role={role} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -50,13 +68,9 @@ function CreateRole() {
   );
 
   return (
-    <form action={action} className="grid gap-4 rounded-2xl border border-border bg-card p-4">
-      <h2 className="text-lg font-semibold">New role</h2>
-      {state && !state.ok ? (
-        <p className="text-sm text-destructive" role="alert">
-          {state.error}
-        </p>
-      ) : null}
+    <form id="new-role" action={action} className="grid scroll-mt-24 gap-4 rounded-2xl border border-border bg-card p-4 shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)] sm:p-5">
+      <h2 className="text-lg font-semibold tracking-tight">New role</h2>
+      {state && !state.ok ? <InlineNotice tone="error">{state.error}</InlineNotice> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="name">Name</Label>
@@ -64,16 +78,15 @@ function CreateRole() {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="scope">Scope</Label>
-          <select
+          <NativeSelect
             id="scope"
             name="scope"
             value={scope}
             onChange={(event) => setScope(event.target.value as AccessScope)}
-            className="h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm"
           >
             <option value="staff">CML staff</option>
             <option value="tenant">Pharmacy</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
       <div className="grid gap-2">
@@ -82,7 +95,7 @@ function CreateRole() {
       </div>
       <PermissionChoices key={scope} scope={scope} selected={[]} />
       <Button type="submit" disabled={pending} className="w-fit">
-        {pending ? "Saving…" : "Create role"}
+        <PendingLabel pending={pending} idle="Create role" busy="Saving…" />
       </Button>
     </form>
   );
@@ -97,14 +110,17 @@ function RoleCard({ role }: { role: ManagedRole }) {
   const locked = role.protected || role.slug === "super_admin";
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4">
+    <article className="rounded-2xl border border-border bg-card p-4 shadow-[0_1px_2px_oklch(0.3_0.03_258/0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-18px_oklch(0.45_0.08_155/0.55)] sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">{role.name}</h2>
-          <p className="text-xs text-muted-foreground">
-            {role.scope === "staff" ? "CML staff" : "Pharmacy"} · {role.slug}
-            {role.system ? " · System" : ""}
-            {locked ? " · Locked" : ""}
+          <h2 className="text-lg font-semibold tracking-tight">{role.name}</h2>
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="rounded-full bg-accent px-2 py-0.5 font-medium text-accent-foreground">
+              {role.scope === "staff" ? "CML staff" : "Pharmacy"}
+            </span>
+            <span>{role.slug}</span>
+            {role.system ? <span>· System</span> : null}
+            {locked ? <span>· Locked</span> : null}
           </p>
         </div>
         {!role.system && !locked ? (
@@ -125,7 +141,7 @@ function RoleCard({ role }: { role: ManagedRole }) {
               router.refresh();
             }}
           >
-            Delete
+            <PendingLabel pending={pending} idle="Delete" busy="Deleting…" />
           </Button>
         ) : null}
       </div>
@@ -151,11 +167,11 @@ function RoleCard({ role }: { role: ManagedRole }) {
         }}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input aria-label="Role name" value={name} onChange={(event) => setName(event.target.value)} disabled={locked} />
+          <Input aria-label="Role name" value={name} onValueChange={setName} disabled={locked} />
           <Input
             aria-label="Role description"
             value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            onValueChange={setDescription}
             disabled={locked}
           />
         </div>
@@ -169,7 +185,7 @@ function RoleCard({ role }: { role: ManagedRole }) {
           <p className="text-sm text-muted-foreground">Super admin permissions cannot be changed.</p>
         ) : (
           <Button type="submit" size="sm" disabled={pending} className="w-fit">
-            Save role
+            <PendingLabel pending={pending} idle="Save role" busy="Saving…" />
           </Button>
         )}
       </form>
@@ -195,9 +211,10 @@ function PermissionChoices({
       {choices.map((permission) => {
         const checked = selected.includes(permission);
         return (
-          <label key={permission} className="flex items-start gap-2 text-sm">
+          <label key={permission} className="flex items-start gap-2.5 rounded-xl border border-transparent px-2 py-2 text-sm transition-colors hover:border-border hover:bg-accent/50 has-[:focus-visible]:border-ring">
             <input
               type="checkbox"
+              className="mt-0.5 size-4"
               name="permissions"
               value={permission}
               checked={onChange ? checked : undefined}

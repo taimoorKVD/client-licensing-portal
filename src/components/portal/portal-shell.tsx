@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState, type ReactNode } from "react";
 import { Building2, Check, FileSpreadsheet, History, KeyRound, MapPin, Menu, ScrollText, LayoutDashboard, Users } from "lucide-react";
+import { BrandMark } from "@/components/portal/brand-mark";
 import { usePortal } from "@/components/portal/portal-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +43,9 @@ export function PortalShell({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const { persona, mode } = usePortal();
+  const current = NAV.find((item) => (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)));
 
   return (
     <div className="min-h-svh bg-background text-foreground">
@@ -51,10 +54,13 @@ export function PortalShell({
       </aside>
 
       <div className="md:pl-64">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/90 px-4 py-3 backdrop-blur md:hidden">
+        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 shadow-[0_1px_0_var(--border)] backdrop-blur md:hidden">
           <Brand />
+          <p className="min-w-0 flex-1 truncate text-right text-sm font-medium text-muted-foreground">
+            {current?.label}
+          </p>
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger render={<Button variant="outline" size="icon" aria-label="Open navigation" />}>
+            <SheetTrigger render={<Button variant="outline" size="icon" aria-label="Open navigation" className="shrink-0" />}>
               <Menu />
             </SheetTrigger>
             <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground">
@@ -65,7 +71,7 @@ export function PortalShell({
         </header>
 
         <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-8">
-          <MedicalCross className="pointer-events-none absolute top-24 -right-2 hidden size-28 text-primary/[0.07] xl:block" />
+          <BrandMark className="pointer-events-none absolute top-24 -right-2 hidden size-28 text-primary/[0.07] xl:block" />
           <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2">
             <p
               className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground"
@@ -78,7 +84,9 @@ export function PortalShell({
               Viewing as <span className="font-semibold text-foreground">{persona.label}</span>
             </p>
           </div>
-          <div className="relative">{children}</div>
+          <div key={pathname} className="relative animate-in fade-in duration-300">
+            {children}
+          </div>
         </div>
       </div>
     </div>
@@ -103,7 +111,7 @@ function SidebarBody({ onNavigate }: { onNavigate: () => void }) {
 function Brand() {
   return (
     <Link href="/" className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none">
-      <MedicalCross className="size-7 text-primary transition-transform group-hover:scale-105" />
+      <BrandMark className="size-7 text-primary transition-transform duration-200 group-hover:scale-105" />
       <span>
         <span className="block text-[15px] leading-none font-bold tracking-tight text-foreground">CML</span>
         <span className="mt-1 block text-xs text-muted-foreground">Client Licensing</span>
@@ -133,13 +141,14 @@ function SideNav({ onNavigate }: { onNavigate: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors",
+              "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-colors duration-200",
+              "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar focus-visible:outline-none",
               active
-                ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
+                ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_3px_0_0_0_var(--sidebar-primary)]"
                 : "text-sidebar-foreground/80 hover:bg-accent hover:text-foreground",
             )}
           >
-            <Icon className="size-4" />
+            <Icon className={cn("size-4 transition-colors", active && "text-primary")} />
             {isAdmin ? item.label : item.shortLabel}
           </Link>
         );
@@ -155,8 +164,15 @@ function AccountPanel() {
       <p className="px-2 text-[0.65rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
         Signed in
       </p>
-      <p className="mt-2 px-2 text-sm font-medium">{persona.label}</p>
-      <p className="px-2 text-xs text-muted-foreground">{actorEmail}</p>
+      <div className="mt-3 flex items-center gap-3 px-2">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+          {initials(persona.label)}
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium">{persona.label}</span>
+          <span className="block truncate text-xs text-muted-foreground">{actorEmail}</span>
+        </span>
+      </div>
       <form action={signOut} className="mt-3 px-2">
         <Button type="submit" variant="outline" className="w-full">
           Sign out
@@ -185,9 +201,9 @@ function PersonaPanel() {
               aria-pressed={selected}
               onClick={() => setPersona(item.id as PersonaId)}
               className={cn(
-                "rounded-xl px-2.5 py-2 text-left transition-colors",
+                "rounded-xl px-2.5 py-2 text-left transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                 selected
-                  ? "bg-accent text-accent-foreground"
+                  ? "bg-accent text-accent-foreground shadow-[inset_3px_0_0_0_var(--primary)]"
                   : "text-foreground/80 hover:bg-muted",
               )}
             >
@@ -226,10 +242,8 @@ function PersonaPanel() {
   );
 }
 
-function MedicalCross({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden>
-      <path fill="currentColor" d="M13 2h6v9h11v6H19v13h-6V17H2v-6h11V2z" />
-    </svg>
-  );
+function initials(label: string) {
+  const parts = label.split(/\s+/).filter(Boolean);
+  const letters = (parts[0]?.[0] ?? "C") + (parts[1]?.[0] ?? "");
+  return letters.toUpperCase();
 }
